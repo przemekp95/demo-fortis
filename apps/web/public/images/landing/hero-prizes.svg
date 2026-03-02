@@ -1,0 +1,47 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#082F49"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#22D3EE" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#22C55E" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="gift" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" rx="40" fill="url(#bg)"/>
+  <circle cx="170" cy="120" r="120" fill="#22D3EE" fill-opacity="0.14"/>
+  <circle cx="1020" cy="620" r="160" fill="#22C55E" fill-opacity="0.14"/>
+  <rect x="70" y="90" width="1060" height="580" rx="30" fill="url(#card)" stroke="#94A3B8" stroke-opacity="0.25"/>
+
+  <rect x="120" y="150" width="330" height="460" rx="28" fill="#0B1220" stroke="#22D3EE" stroke-opacity="0.4"/>
+  <rect x="145" y="190" width="280" height="350" rx="18" fill="#111827"/>
+  <rect x="180" y="230" width="210" height="20" rx="10" fill="#22D3EE" fill-opacity="0.8"/>
+  <rect x="180" y="265" width="180" height="14" rx="7" fill="#64748B"/>
+  <rect x="180" y="289" width="220" height="14" rx="7" fill="#64748B"/>
+  <rect x="180" y="313" width="160" height="14" rx="7" fill="#64748B"/>
+  <rect x="180" y="354" width="160" height="120" rx="14" fill="#0F172A" stroke="#22D3EE" stroke-opacity="0.3"/>
+  <text x="200" y="425" fill="#E2E8F0" font-size="34" font-family="Verdana, sans-serif" font-weight="700">100 PLN</text>
+  <rect x="245" y="565" width="80" height="12" rx="6" fill="#334155"/>
+
+  <g transform="translate(520 210)">
+    <rect x="0" y="90" width="260" height="210" rx="20" fill="url(#gift)"/>
+    <rect x="0" y="170" width="260" height="22" fill="#0891B2"/>
+    <rect x="118" y="90" width="24" height="210" fill="#0891B2"/>
+    <path d="M130 90C103 90 84 74 84 54C84 32 102 20 122 26C137 31 145 46 146 61C149 45 159 31 176 26C196 20 214 32 214 54C214 74 195 90 168 90H130Z" fill="#E2F9FF"/>
+    <rect x="78" y="305" width="104" height="20" rx="10" fill="#22D3EE" fill-opacity="0.5"/>
+  </g>
+
+  <g transform="translate(830 210)">
+    <circle cx="120" cy="120" r="100" fill="#ECFEFF" fill-opacity="0.18"/>
+    <circle cx="120" cy="120" r="80" fill="#22D3EE" fill-opacity="0.3"/>
+    <path d="M120 70L136 104H172L143 124L154 160L120 140L86 160L97 124L68 104H104L120 70Z" fill="#ECFEFF"/>
+  </g>
+
+  <text x="600" y="560" text-anchor="middle" fill="#BAE6FD" font-size="28" font-family="Verdana, sans-serif" letter-spacing="3">FORTIS LOTERIA</text>
+  <text x="600" y="604" text-anchor="middle" fill="#E2E8F0" font-size="42" font-family="Verdana, sans-serif" font-weight="700" textLength="700" lengthAdjust="spacingAndGlyphs">Codziennie nagrody + finał</text>
+</svg>

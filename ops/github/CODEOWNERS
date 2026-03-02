@@ -1,0 +1,4 @@
+* @your-org/fortis-core
+/apps/web/ @your-org/fortis-backend
+/infra/ @your-org/fortis-platform
+/tests/e2e/ @your-org/fortis-qa

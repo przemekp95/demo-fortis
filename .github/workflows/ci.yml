@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_sqlite, pdo_mysql, bcmath, pcntl
+          coverage: xdebug
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist
+          npm ci
+
+      - name: Dependency security audit
+        run: |
+          composer audit --format=json --no-interaction > composer-audit.json || true
+          php -r '$report = json_decode(file_get_contents("composer-audit.json"), true); $violations = []; foreach (($report["advisories"] ?? []) as $package => $advisories) { foreach ($advisories as $advisory) { $severity = strtolower((string) ($advisory["severity"] ?? "unknown")); if (in_array($severity, ["high", "critical"], true)) { $violations[] = sprintf("%s [%s] %s", $package, strtoupper($severity), (string) ($advisory["title"] ?? "Unknown advisory")); } } } if (count($violations) > 0) { fwrite(STDERR, "Composer audit found high/critical advisories:\n".implode("\n", $violations)."\n"); exit(1); } echo "Composer audit passed: no high/critical advisories.\n";'
+          npm audit --omit=dev --audit-level=high
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run migrations
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan migrate --force
+
+      - name: Quality gates
+        run: |
+          ./vendor/bin/pint --test
+          ./vendor/bin/phpstan analyse --memory-limit=1G
+          npm run lint
+          npm run format:check
+
+      - name: Test with coverage
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test --coverage-clover=coverage.xml
+
+      - name: Enforce backend coverage >= 85%
+        run: |
+          php -r '$xml=simplexml_load_file("coverage.xml"); $m=$xml->project->metrics; $cov=((int)$m["coveredstatements"]/(max((int)$m["statements"],1)))*100; echo "Backend coverage: ".round($cov,2)."%\n"; if($cov<85){fwrite(STDERR,"Coverage below 85%\n"); exit(1);} '
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - name: Frontend unit tests with coverage >= 80%
+        run: npm run test:coverage
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  container-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image for scan
+        run: docker build -t fortis-lottery:ci ./apps/web
+      - name: Trivy image scan (HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: fortis-lottery:ci
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend-tests, frontend-build, container-security]
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_sqlite
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install app dependencies
+        run: |
+          composer install --no-interaction --prefer-dist
+          npm ci
+          npm run build
+
+      - name: Prepare app
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          {
+            echo "DB_CONNECTION=sqlite"
+            echo "DB_DATABASE=\"$(pwd)/database/database.sqlite\""
+            echo "CACHE_DRIVER=file"
+            echo "QUEUE_CONNECTION=sync"
+            echo "SESSION_DRIVER=file"
+          } >> .env
+          php artisan migrate --seed --force
+
+      - name: Start app server
+        run: php artisan serve --host=127.0.0.1 --port=8000 > /tmp/laravel.log 2>&1 &
+
+      - name: Install Playwright
+        working-directory: tests/e2e
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Run smoke tests
+        working-directory: tests/e2e
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8000
+        run: npm test

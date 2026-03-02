@@ -1,0 +1,9 @@
+image:
+  tag: staging
+
+ingress:
+  enabled: false
+
+env:
+  appEnv: staging
+  appDebug: "false"

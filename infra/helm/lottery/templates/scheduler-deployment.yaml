@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lottery.fullname" . }}-scheduler
+  labels:
+    app.kubernetes.io/name: {{ include "lottery.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "lottery.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "lottery.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        component: scheduler
+    spec:
+      containers:
+        - name: scheduler
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["php", "artisan", "schedule:work"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "lottery.fullname" . }}-config
+            - secretRef:
+                name: {{ include "lottery.fullname" . }}-secrets
+          resources:
+{{ toYaml .Values.resources.worker | indent 12 }}

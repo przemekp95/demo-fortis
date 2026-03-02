@@ -1,0 +1,11 @@
+replicaCount: 2
+
+image:
+  tag: production
+
+ingress:
+  enabled: false
+
+env:
+  appEnv: production
+  appDebug: "false"

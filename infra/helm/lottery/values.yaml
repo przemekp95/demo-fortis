@@ -1,0 +1,44 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/your-org/fortis-lottery
+  pullPolicy: IfNotPresent
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  host: lottery.local
+
+env:
+  appEnv: production
+  appDebug: "false"
+  appUrl: http://lottery.local
+  dbHost: mysql
+  dbPort: "3306"
+  dbDatabase: fortis_lottery
+  dbUsername: fortis
+  dbPassword: fortis
+  redisHost: redis
+  queueConnection: redis
+  cacheDriver: redis
+
+resources:
+  web:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  worker:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

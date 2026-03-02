@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: Fortis Lottery Public API
+  version: v1
+  description: Read-only public API for campaign and draw visibility.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /campaign/current:
+    get:
+      summary: Get current campaign
+      operationId: getCurrentCampaign
+      responses:
+        '200':
+          description: Active campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaign/current/prizes:
+    get:
+      summary: Get prizes for current campaign
+      operationId: getCurrentCampaignPrizes
+      responses:
+        '200':
+          description: Prize list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prize'
+  /draws/history:
+    get:
+      summary: Get historical draw runs
+      operationId: getDrawHistory
+      responses:
+        '200':
+          description: Draw history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DrawRun'
+  /winners:
+    get:
+      summary: Get published winners with masked participant data
+      operationId: getWinners
+      responses:
+        '200':
+          description: Winner list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Winner'
+  /stats/public:
+    get:
+      summary: Get public platform statistics
+      operationId: getPublicStats
+      responses:
+        '200':
+          description: Public KPIs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicStats'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  schemas:
+    Campaign:
+      type: object
+      required: [id, name, status, starts_at, ends_at, final_draw_at]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        final_draw_at:
+          type: string
+          format: date-time
+    Prize:
+      type: object
+      required: [id, name, draw_type, quantity, value]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        draw_type:
+          type: string
+          enum: [daily, final]
+        quantity:
+          type: integer
+        value:
+          type: number
+          format: float
+    DrawRun:
+      type: object
+      required: [id, type, status, executed_at]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [daily, final]
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        executed_at:
+          type: string
+          format: date-time
+    Winner:
+      type: object
+      required: [id, draw_run_id, entry_id, published_at]
+      properties:
+        id:
+          type: integer
+        draw_run_id:
+          type: integer
+        entry_id:
+          type: integer
+        masked_name:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+    PublicStats:
+      type: object
+      required: [entries_total, winners_total, active_campaign]
+      properties:
+        entries_total:
+          type: integer
+        winners_total:
+          type: integer
+        active_campaign:
+          type: boolean
