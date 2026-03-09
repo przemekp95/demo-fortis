@@ -37,9 +37,24 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.image_tag }}
 
-  deploy-staging:
+  deployment-gate:
     runs-on: ubuntu-latest
-    needs: [build-and-push]
+    outputs:
+      can_deploy: ${{ steps.gate.outputs.can_deploy }}
+    steps:
+      - name: Detect deployment credentials
+        id: gate
+        run: |
+          if [ -n "${{ secrets.KUBE_CONFIG }}" ]; then
+            echo "can_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "can_deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-staging:
+    if: ${{ needs.deployment-gate.outputs.can_deploy == 'true' }}
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deployment-gate]
     environment: staging
     steps:
       - uses: actions/checkout@v4
@@ -61,8 +76,9 @@ jobs:
             -f infra/helm/lottery/values-staging.yaml
 
   deploy-production:
+    if: ${{ needs.deployment-gate.outputs.can_deploy == 'true' }}
     runs-on: ubuntu-latest
-    needs: [build-and-push, deploy-staging]
+    needs: [build-and-push, deployment-gate, deploy-staging]
     environment: production
     steps:
       - uses: actions/checkout@v4
