@@ -58,13 +58,13 @@ jobs:
           npm run lint
           npm run format:check
 
-      - name: Test with coverage
+      - name: Test critical backend paths with coverage
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
         run: php artisan test --coverage-clover=coverage.xml
 
-      - name: Enforce backend coverage >= 85%
+      - name: Enforce critical backend coverage >= 85%
         run: |
           php -r '$xml=simplexml_load_file("coverage.xml"); $m=$xml->project->metrics; $cov=((int)$m["coveredstatements"]/(max((int)$m["statements"],1)))*100; echo "Backend coverage: ".round($cov,2)."%\n"; if($cov<85){fwrite(STDERR,"Coverage below 85%\n"); exit(1);} '
 
@@ -81,7 +81,7 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci
-      - name: Frontend unit tests with coverage >= 80%
+      - name: Frontend utility tests with coverage >= 80%
         run: npm run test:coverage
 
   frontend-build:

@@ -1,66 +1,92 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Fortis Web App
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 9 + Inertia + Vue 3 application for the Fortis lottery platform.
 
-## About Laravel
+## What Lives Here
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- public landing page and legal pages
+- participant dashboard, receipt submission, DSR and web-push opt-in
+- admin dashboard, campaign management, draw review and winner exports
+- public read-only API under `/api/v1`
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Run With Docker
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+From the repo root:
 
-## Learning Laravel
+```bash
+cp apps/web/.env.example apps/web/.env
+docker compose up -d --build
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --seed
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+App URLs:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- app: `http://localhost:8080`
+- Vite: `http://localhost:5173`
+- Mailpit: `http://localhost:8025`
 
-## Laravel Sponsors
+Seeded users:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+- admin: `admin@fortis.test` / `Password123!`
+- participant: `participant@fortis.test` / `Password123!`
 
-### Premium Partners
+## Run Locally Without Docker
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+Quick verification can run on sqlite even though `.env.example` is wired for Docker services:
 
-## Contributing
+```bash
+cp .env.example .env
+composer install
+npm ci
+php artisan key:generate
+touch database/database.sqlite
+DB_CONNECTION=sqlite \
+DB_DATABASE="$(pwd)/database/database.sqlite" \
+CACHE_DRIVER=file \
+QUEUE_CONNECTION=sync \
+SESSION_DRIVER=file \
+php artisan migrate --seed
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+DB_CONNECTION=sqlite \
+DB_DATABASE="$(pwd)/database/database.sqlite" \
+CACHE_DRIVER=file \
+QUEUE_CONNECTION=sync \
+SESSION_DRIVER=file \
+php artisan serve
+```
 
-## Code of Conduct
+In a second terminal:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+npm run dev
+```
 
-## Security Vulnerabilities
+## Quality Gates
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+./vendor/bin/pint --test
+./vendor/bin/phpstan analyse --memory-limit=1G
+npm run lint
+npm run format:check
+npm run test:coverage
+php artisan test
+```
 
-## License
+Coverage scope is intentional:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- frontend coverage gate covers utility modules in `resources/js/utils`
+- backend coverage gate covers critical public API and service paths configured in `phpunit.xml`
+
+## E2E
+
+```bash
+cd ../../tests/e2e
+npm ci
+npx playwright install chromium
+E2E_BASE_URL=http://127.0.0.1:8000 npm test
+```
+
+The auth form uses a honeypot and a minimum 1 second dwell time, so browser automation must not submit login immediately after page load.

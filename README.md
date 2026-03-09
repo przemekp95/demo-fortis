@@ -47,9 +47,11 @@ composer audit --format=json --no-interaction > composer-audit.json || true
 npm audit --omit=dev --audit-level=high
 npm run lint
 npm run format:check
-npm run test:coverage
+npm run test:coverage # frontend utility coverage
 php artisan test
 ```
+
+Backend coverage enforcement in CI applies to the critical API and service paths listed in `apps/web/phpunit.xml`.
 
 ## E2E
 
@@ -59,6 +61,8 @@ npm ci
 npx playwright install chromium
 E2E_BASE_URL=http://127.0.0.1:8000 npm test
 ```
+
+Note: auth endpoints use a honeypot with a minimum 1 second dwell time.
 
 ## Performance (k6)
 

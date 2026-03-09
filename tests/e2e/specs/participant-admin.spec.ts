@@ -5,6 +5,7 @@ test('participant can submit receipt and see status', async ({ page }) => {
 
   await page.getByLabel('Email').fill('participant@fortis.test');
   await page.getByLabel('Password').fill('Password123!');
+  await page.waitForTimeout(1100);
   await page.getByRole('button', { name: 'Log in' }).click();
 
   await expect(page).toHaveURL(/participant\/dashboard/);
@@ -29,6 +30,7 @@ test('admin can access fraud and winner exports views', async ({ page }) => {
 
   await page.getByLabel('Email').fill('admin@fortis.test');
   await page.getByLabel('Password').fill('Password123!');
+  await page.waitForTimeout(1100);
   await page.getByRole('button', { name: 'Log in' }).click();
 
   await expect(page).toHaveURL(/admin\/dashboard/);

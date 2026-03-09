@@ -9,8 +9,11 @@ use Illuminate\Validation\ValidationException;
 class HoneypotGuard
 {
     private const TRAP_FIELD = 'fax_number';
+
     private const TIMESTAMP_FIELD = '_form_started_at';
+
     private const MIN_ELAPSED_MS = 1000;
+
     private const MAX_ELAPSED_MS = 7200000;
 
     public function handle(Request $request, Closure $next)

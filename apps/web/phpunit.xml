@@ -14,7 +14,12 @@
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>
+            <directory suffix=".php">./app/Http/Controllers/Api/V1</directory>
+            <directory suffix=".php">./app/Http/Resources</directory>
+            <file>./app/Services/Draw/DrawService.php</file>
+            <file>./app/Services/Entries/EntrySubmissionService.php</file>
             <file>./app/Services/Fraud/FraudScoringService.php</file>
+            <file>./app/Services/Kpi/KpiService.php</file>
             <file>./app/Services/Webhooks/WebhookSigningService.php</file>
         </include>
     </coverage>

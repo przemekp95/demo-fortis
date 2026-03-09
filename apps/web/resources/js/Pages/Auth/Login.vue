@@ -36,7 +36,10 @@ const submit = () => {
         </div>
 
         <form @submit.prevent="submit">
-            <div class="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+            <div
+                class="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+                aria-hidden="true"
+            >
                 <label for="fax_number">Nie wypełniaj tego pola</label>
                 <input
                     id="fax_number"

@@ -44,7 +44,10 @@ const submit = () => {
         <Head title="Rejestracja" />
 
         <form @submit.prevent="submit" class="space-y-4">
-            <div class="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+            <div
+                class="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+                aria-hidden="true"
+            >
                 <label for="fax_number">Nie wypełniaj tego pola</label>
                 <input
                     id="fax_number"
