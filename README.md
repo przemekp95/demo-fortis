@@ -7,6 +7,7 @@ Senior-level monorepo for a fictional e-commerce lottery platform built with Lar
 - `apps/web` Laravel + Inertia + Vue app
 - `infra/helm/lottery` Helm chart for Kubernetes
 - `infra/k8s` local bootstrap manifests for Minikube namespaces
+- `infra/mikrus` production Docker Compose runtime for Mikrus deploys
 - `ops/github` GitHub governance files (CODEOWNERS, templates)
 - `tests/e2e` Playwright smoke tests
 - `tests/perf` k6 performance scenarios
@@ -72,7 +73,55 @@ Available scenarios:
 - `tests/perf/receipt-submit-burst.js`
 - `tests/perf/admin-kpi-dashboard.js`
 
-## Kubernetes (Minikube)
+## Mikrus Deploy
+
+CD deploys to a Mikrus host over SSH using `infra/mikrus/docker-compose.yml`.
+
+Required GitHub environment secrets for `staging` and/or `production`:
+
+- `MIKRUS_HOST`
+- `MIKRUS_USER`
+- `MIKRUS_SSH_KEY`
+- `MIKRUS_KNOWN_HOSTS`
+- `MIKRUS_ENV_FILE`
+- `GHCR_USERNAME`
+- `GHCR_TOKEN`
+
+Optional GitHub environment variables:
+
+- `MIKRUS_PORT` default `22`
+- `MIKRUS_DEPLOY_PATH` default `/home/<user>/apps/demo-fortis`
+
+`MIKRUS_ENV_FILE` should contain the Laravel runtime env plus deployment values like:
+
+```dotenv
+APP_NAME="Fortis Lottery"
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:...
+APP_URL=https://example.com
+DB_DATABASE=fortis_lottery
+DB_USERNAME=fortis
+DB_PASSWORD=strong-password
+DB_ROOT_PASSWORD=another-strong-password
+APP_PORT=8080
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=...
+MAIL_PASSWORD=...
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME="Fortis Lottery"
+```
+
+Host prerequisites:
+
+- Docker Engine with `docker compose`
+- outbound access to `ghcr.io`
+- SSH access for the configured deploy user
+
+## Kubernetes (Optional / Local)
 
 ```bash
 kubectl apply -f infra/k8s/namespaces.yaml

@@ -37,64 +37,212 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.image_tag }}
 
-  deployment-gate:
+  staging-deployment-gate:
     runs-on: ubuntu-latest
+    environment: staging
     outputs:
       can_deploy: ${{ steps.gate.outputs.can_deploy }}
+    env:
+      MIKRUS_HOST: ${{ secrets.MIKRUS_HOST }}
+      MIKRUS_USER: ${{ secrets.MIKRUS_USER }}
+      MIKRUS_SSH_KEY: ${{ secrets.MIKRUS_SSH_KEY }}
+      MIKRUS_KNOWN_HOSTS: ${{ secrets.MIKRUS_KNOWN_HOSTS }}
+      MIKRUS_ENV_FILE: ${{ secrets.MIKRUS_ENV_FILE }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
     steps:
-      - name: Detect deployment credentials
+      - name: Detect staging deployment credentials
         id: gate
         run: |
-          if [ -n "${{ secrets.KUBE_CONFIG }}" ]; then
+          missing=0
+
+          for value in \
+            "$MIKRUS_HOST" \
+            "$MIKRUS_USER" \
+            "$MIKRUS_SSH_KEY" \
+            "$MIKRUS_KNOWN_HOSTS" \
+            "$MIKRUS_ENV_FILE" \
+            "$GHCR_USERNAME" \
+            "$GHCR_TOKEN"
+          do
+            if [ -z "$value" ]; then
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 0 ]; then
             echo "can_deploy=true" >> "$GITHUB_OUTPUT"
           else
             echo "can_deploy=false" >> "$GITHUB_OUTPUT"
           fi
 
   deploy-staging:
-    if: ${{ needs.deployment-gate.outputs.can_deploy == 'true' }}
+    if: ${{ needs.staging-deployment-gate.outputs.can_deploy == 'true' }}
     runs-on: ubuntu-latest
-    needs: [build-and-push, deployment-gate]
+    needs: [build-and-push, staging-deployment-gate]
     environment: staging
+    env:
+      REMOTE_HOST: ${{ secrets.MIKRUS_HOST }}
+      REMOTE_USER: ${{ secrets.MIKRUS_USER }}
+      REMOTE_PORT: ${{ vars.MIKRUS_PORT }}
+      DEPLOY_PATH: ${{ vars.MIKRUS_DEPLOY_PATH }}
+      KNOWN_HOSTS: ${{ secrets.MIKRUS_KNOWN_HOSTS }}
+      REMOTE_ENV_FILE: ${{ secrets.MIKRUS_ENV_FILE }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      APP_IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-kubectl@v4
-      - uses: azure/setup-helm@v4
 
-      - name: Configure Kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MIKRUS_SSH_KEY }}
 
-      - name: Deploy to staging
+      - name: Configure SSH known hosts
         run: |
-          helm upgrade --install lottery-staging infra/helm/lottery \
-            --namespace lottery-staging \
-            --create-namespace \
-            --set image.repository=ghcr.io/${{ github.repository }} \
-            --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
-            -f infra/helm/lottery/values-staging.yaml
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Prepare deploy bundle
+        run: |
+          mkdir -p .deploy
+          printf '%s\n' "$REMOTE_ENV_FILE" > .deploy/.env
+          {
+            echo "APP_IMAGE_REPOSITORY=ghcr.io/${GITHUB_REPOSITORY}"
+            echo "APP_IMAGE_TAG=${APP_IMAGE_TAG}"
+          } >> .deploy/.env
+          cp infra/mikrus/docker-compose.yml .deploy/docker-compose.yml
+
+      - name: Upload deploy bundle
+        run: |
+          remote_port="${REMOTE_PORT:-22}"
+          remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
+          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "mkdir -p '$remote_path'"
+          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$REMOTE_USER@$REMOTE_HOST:$remote_path/"
+
+      - name: Deploy to Mikrus staging
+        run: |
+          remote_port="${REMOTE_PORT:-22}"
+          remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
+
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" \
+            "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
+
+          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "set -euo pipefail
+            cd '$remote_path'
+            docker compose pull app queue scheduler
+            docker compose up -d --remove-orphans
+            docker compose exec -T app php artisan migrate --force
+            docker compose exec -T app php artisan storage:link || true
+            docker compose exec -T app php artisan optimize:clear
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache"
+
+  production-deployment-gate:
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      can_deploy: ${{ steps.gate.outputs.can_deploy }}
+    env:
+      MIKRUS_HOST: ${{ secrets.MIKRUS_HOST }}
+      MIKRUS_USER: ${{ secrets.MIKRUS_USER }}
+      MIKRUS_SSH_KEY: ${{ secrets.MIKRUS_SSH_KEY }}
+      MIKRUS_KNOWN_HOSTS: ${{ secrets.MIKRUS_KNOWN_HOSTS }}
+      MIKRUS_ENV_FILE: ${{ secrets.MIKRUS_ENV_FILE }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+    steps:
+      - name: Detect production deployment credentials
+        id: gate
+        run: |
+          missing=0
+
+          for value in \
+            "$MIKRUS_HOST" \
+            "$MIKRUS_USER" \
+            "$MIKRUS_SSH_KEY" \
+            "$MIKRUS_KNOWN_HOSTS" \
+            "$MIKRUS_ENV_FILE" \
+            "$GHCR_USERNAME" \
+            "$GHCR_TOKEN"
+          do
+            if [ -z "$value" ]; then
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 0 ]; then
+            echo "can_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "can_deploy=false" >> "$GITHUB_OUTPUT"
+          fi
 
   deploy-production:
-    if: ${{ needs.deployment-gate.outputs.can_deploy == 'true' }}
+    if: ${{ needs.production-deployment-gate.outputs.can_deploy == 'true' }}
     runs-on: ubuntu-latest
-    needs: [build-and-push, deployment-gate, deploy-staging]
+    needs: [build-and-push, production-deployment-gate]
     environment: production
+    env:
+      REMOTE_HOST: ${{ secrets.MIKRUS_HOST }}
+      REMOTE_USER: ${{ secrets.MIKRUS_USER }}
+      REMOTE_PORT: ${{ vars.MIKRUS_PORT }}
+      DEPLOY_PATH: ${{ vars.MIKRUS_DEPLOY_PATH }}
+      KNOWN_HOSTS: ${{ secrets.MIKRUS_KNOWN_HOSTS }}
+      REMOTE_ENV_FILE: ${{ secrets.MIKRUS_ENV_FILE }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      APP_IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-kubectl@v4
-      - uses: azure/setup-helm@v4
 
-      - name: Configure Kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MIKRUS_SSH_KEY }}
 
-      - name: Deploy to production
+      - name: Configure SSH known hosts
         run: |
-          helm upgrade --install lottery-production infra/helm/lottery \
-            --namespace lottery-production \
-            --create-namespace \
-            --set image.repository=ghcr.io/${{ github.repository }} \
-            --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
-            -f infra/helm/lottery/values-production.yaml
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Prepare deploy bundle
+        run: |
+          mkdir -p .deploy
+          printf '%s\n' "$REMOTE_ENV_FILE" > .deploy/.env
+          {
+            echo "APP_IMAGE_REPOSITORY=ghcr.io/${GITHUB_REPOSITORY}"
+            echo "APP_IMAGE_TAG=${APP_IMAGE_TAG}"
+          } >> .deploy/.env
+          cp infra/mikrus/docker-compose.yml .deploy/docker-compose.yml
+
+      - name: Upload deploy bundle
+        run: |
+          remote_port="${REMOTE_PORT:-22}"
+          remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
+          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "mkdir -p '$remote_path'"
+          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$REMOTE_USER@$REMOTE_HOST:$remote_path/"
+
+      - name: Deploy to Mikrus production
+        run: |
+          remote_port="${REMOTE_PORT:-22}"
+          remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
+
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" \
+            "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
+
+          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "set -euo pipefail
+            cd '$remote_path'
+            docker compose pull app queue scheduler
+            docker compose up -d --remove-orphans
+            docker compose exec -T app php artisan migrate --force
+            docker compose exec -T app php artisan storage:link || true
+            docker compose exec -T app php artisan optimize:clear
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache"
