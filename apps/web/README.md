@@ -1,6 +1,11 @@
 # Fortis Web App
 
-Laravel 9 + Inertia + Vue 3 application for a lottery demo.
+Laravel 10 + Inertia + Vue 3 application for a lottery demo.
+
+## Runtime Requirements
+
+- PHP `^8.1`
+- Node.js `>=20.19`
 
 ## What Lives Here
 

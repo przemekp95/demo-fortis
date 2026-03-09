@@ -37,8 +37,8 @@ jobs:
       - name: Dependency security audit
         run: |
           composer audit --format=json --no-interaction > composer-audit.json || true
-          php -r '$report = json_decode(file_get_contents("composer-audit.json"), true); $violations = []; foreach (($report["advisories"] ?? []) as $package => $advisories) { foreach ($advisories as $advisory) { $severity = strtolower((string) ($advisory["severity"] ?? "unknown")); if (in_array($severity, ["high", "critical"], true)) { $violations[] = sprintf("%s [%s] %s", $package, strtoupper($severity), (string) ($advisory["title"] ?? "Unknown advisory")); } } } if (count($violations) > 0) { fwrite(STDERR, "Composer audit found high/critical advisories:\n".implode("\n", $violations)."\n"); exit(1); } echo "Composer audit passed: no high/critical advisories.\n";'
-          npm audit --omit=dev --audit-level=high
+          php -r '$report = json_decode(file_get_contents("composer-audit.json"), true); $violations = []; foreach (($report["advisories"] ?? []) as $package => $advisories) { foreach ($advisories as $advisory) { $severity = strtolower((string) ($advisory["severity"] ?? "unknown")); if (in_array($severity, ["medium", "high", "critical"], true)) { $violations[] = sprintf("%s [%s] %s", $package, strtoupper($severity), (string) ($advisory["title"] ?? "Unknown advisory")); } } } if (count($violations) > 0) { fwrite(STDERR, "Composer audit found medium/high/critical advisories:\n".implode("\n", $violations)."\n"); exit(1); } echo "Composer audit passed: no medium/high/critical advisories.\n";'
+          npm audit --audit-level=moderate
 
       - name: Prepare environment
         run: |
