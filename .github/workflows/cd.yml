@@ -16,7 +16,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set image tag
         id: meta
@@ -92,7 +92,7 @@ jobs:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       APP_IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Load SSH key
         uses: webfactory/ssh-agent@v0.9.0
@@ -197,7 +197,7 @@ jobs:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       APP_IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Load SSH key
         uses: webfactory/ssh-agent@v0.9.0
