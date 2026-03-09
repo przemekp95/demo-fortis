@@ -16,7 +16,7 @@
         "autoprefixer": "^10.4.12",
         "axios": "^1.1.2",
         "eslint": "^8.57.1",
-        "eslint-plugin-vue": "^9.30.0",
+        "eslint-plugin-vue": "^10.8.0",
         "laravel-vite-plugin": "^2.1.0",
         "lodash": "^4.17.19",
         "postcss": "^8.4.18",
