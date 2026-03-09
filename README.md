@@ -84,8 +84,6 @@ Required GitHub environment secrets for `staging` and/or `production`:
 - `MIKRUS_SSH_KEY`
 - `MIKRUS_KNOWN_HOSTS`
 - `MIKRUS_ENV_FILE`
-- `GHCR_USERNAME`
-- `GHCR_TOKEN`
 
 Optional GitHub environment variables:
 
@@ -120,6 +118,9 @@ Host prerequisites:
 - Docker Engine with `docker compose`
 - outbound access to `ghcr.io`
 - SSH access for the configured deploy user
+
+The workflow uses the built-in GitHub Actions identity for GHCR pulls on the
+remote host, so no separate `GHCR_USERNAME` or `GHCR_TOKEN` secret is required.
 
 ## Kubernetes (Optional / Local)
 
