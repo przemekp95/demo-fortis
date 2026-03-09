@@ -15,13 +15,17 @@ RUN npm run build
 
 FROM php:8.5-apache AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    $PHPIZE_DEPS \
     git \
     unzip \
     libzip-dev \
     libicu-dev \
     && docker-php-ext-install pdo_mysql bcmath pcntl intl \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apt-get purge -y --auto-remove $PHPIZE_DEPS \
     && a2enmod rewrite headers \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/pear
 
 WORKDIR /var/www/html
 COPY --from=composer /app /var/www/html
