@@ -14,7 +14,11 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
+    groups:
+      github-actions-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "docker"
     directory: "/apps/web"
@@ -29,7 +33,11 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
+    groups:
+      web-docker-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "composer"
     directory: "/apps/web"
@@ -44,12 +52,11 @@ updates:
     labels:
       - "dependencies"
       - "php"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 2
     groups:
-      web-composer-non-major:
-        update-types:
-          - "minor"
-          - "patch"
+      web-composer-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/apps/web"
@@ -64,12 +71,19 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     groups:
       web-npm-non-major:
+        patterns:
+          - "*"
         update-types:
           - "minor"
           - "patch"
+      web-npm-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
 
   - package-ecosystem: "npm"
     directory: "/tests/e2e"
@@ -84,9 +98,8 @@ updates:
     labels:
       - "dependencies"
       - "e2e"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     groups:
-      e2e-npm-non-major:
-        update-types:
-          - "minor"
-          - "patch"
+      e2e-npm-all:
+        patterns:
+          - "*"
