@@ -1,6 +1,6 @@
 # Fortis Web App
 
-Laravel 9 + Inertia + Vue 3 application for the Fortis lottery platform.
+Laravel 9 + Inertia + Vue 3 application for a lottery demo.
 
 ## What Lives Here
 

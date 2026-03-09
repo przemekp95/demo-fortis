@@ -6,11 +6,11 @@ const currentYear = new Date().getFullYear();
     <footer class="rounded-3xl border border-white/15 bg-slate-900/75 px-6 py-8 sm:px-8">
         <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
             <section>
-                <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">Fortis</p>
+                <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">Projekt Demo</p>
                 <h3 class="mt-2 text-lg font-semibold text-white">Loteria Paragonowa</h3>
                 <p class="mt-3 text-sm leading-relaxed text-slate-300">
-                    Platforma konkursowa marki Fortis. Zgłaszaj paragony online i śledź wyniki
-                    losowań z poziomu przeglądarki oraz PWA.
+                    Projekt demonstracyjny przygotowany jako zadanie pokazowe. Materiały i treści w
+                    tej sekcji mają charakter wyłącznie prezentacyjny.
                 </p>
             </section>
 
@@ -83,7 +83,8 @@ const currentYear = new Date().getFullYear();
         </div>
 
         <div class="mt-8 border-t border-white/10 pt-4 text-xs text-slate-400">
-            © {{ currentYear }} Fortis. Wszelkie prawa zastrzeżone.
+            © {{ currentYear }} autor projektu demonstracyjnego. Materiał służy wyłącznie do
+            prezentacji rozwiązania.
         </div>
     </footer>
 </template>

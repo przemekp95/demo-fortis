@@ -33,16 +33,17 @@ import PublicFooter from '@/Components/PublicFooter.vue';
                     Wersja regulaminu: 1.0 | Data obowiązywania: 27 lutego 2026
                 </p>
                 <p class="mt-4 leading-relaxed text-slate-200">
-                    Niniejszy regulamin określa warunki uczestnictwa w loterii paragonowej
-                    organizowanej przez markę Fortis w serwisie internetowym i aplikacji PWA.
+                    Niniejszy regulamin jest przykładowym dokumentem dołączonym do projektu
+                    demonstracyjnego serwisu internetowego i aplikacji PWA.
                 </p>
             </section>
 
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
                 <h2 class="text-xl font-semibold text-white">1. Organizator i definicje</h2>
                 <p class="mt-3 leading-relaxed text-slate-200">
-                    Organizatorem loterii jest Fortis Sp. z o.o. Uczestnik to osoba fizyczna, która
-                    założyła konto, potwierdziła adres e-mail i zaakceptowała wymagane zgody.
+                    Na potrzeby tego demo przyjęto przykładowe dane organizatora. Uczestnik to osoba
+                    fizyczna, która założyła konto, potwierdziła adres e-mail i zaakceptowała
+                    wymagane zgody.
                 </p>
             </section>
 

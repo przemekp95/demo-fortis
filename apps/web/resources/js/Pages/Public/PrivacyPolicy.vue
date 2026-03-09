@@ -29,16 +29,15 @@ import PublicFooter from '@/Components/PublicFooter.vue';
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
                 <p class="text-sm text-slate-300">Data ostatniej aktualizacji: 27 lutego 2026</p>
                 <p class="mt-4 leading-relaxed text-slate-200">
-                    Niniejsza Polityka prywatności opisuje zasady przetwarzania danych osobowych
-                    uczestników loterii paragonowej Fortis. Dokument dotyczy serwisu internetowego i
-                    wersji PWA.
+                    Niniejsza Polityka prywatności jest przykładowym dokumentem dołączonym do
+                    projektu demonstracyjnego serwisu internetowego i wersji PWA.
                 </p>
             </section>
 
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
                 <h2 class="text-xl font-semibold text-white">1. Administrator danych</h2>
                 <p class="mt-3 leading-relaxed text-slate-200">
-                    Administratorem danych jest Fortis Sp. z o.o. z siedzibą w Warszawie. Kontakt w
+                    Na potrzeby tego demo przyjęto przykładowe dane administratora. Kontakt w
                     sprawach ochrony danych:
                     <a href="mailto:rodo@fortis.test" class="text-cyan-200 hover:text-cyan-100"
                         >rodo@fortis.test</a
