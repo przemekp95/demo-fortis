@@ -5,6 +5,16 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: Deployment target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+          - both
 
 permissions:
   contents: read
@@ -73,7 +83,7 @@ jobs:
           fi
 
   deploy-staging:
-    if: ${{ needs.staging-deployment-gate.outputs.can_deploy == 'true' }}
+    if: ${{ needs.staging-deployment-gate.outputs.can_deploy == 'true' && github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_target == 'staging' || github.event.inputs.deploy_target == 'both') }}
     runs-on: ubuntu-latest
     needs: [build-and-push, staging-deployment-gate]
     concurrency:
@@ -188,7 +198,7 @@ jobs:
           fi
 
   deploy-production:
-    if: ${{ needs.production-deployment-gate.outputs.can_deploy == 'true' }}
+    if: ${{ needs.production-deployment-gate.outputs.can_deploy == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_target == 'production' || github.event.inputs.deploy_target == 'both'))) }}
     runs-on: ubuntu-latest
     needs: [build-and-push, production-deployment-gate]
     concurrency:
