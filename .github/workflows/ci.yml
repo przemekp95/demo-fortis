@@ -107,14 +107,15 @@ jobs:
       - name: Build image for scan
         run: docker build -t fortis-lottery:ci ./apps/web
       - name: Trivy image scan (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: fortis-lottery:ci
-          format: table
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: HIGH,CRITICAL
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.56.1 image \
+            --scanners vuln \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 \
+            fortis-lottery:ci
 
   e2e-smoke:
     runs-on: ubuntu-latest

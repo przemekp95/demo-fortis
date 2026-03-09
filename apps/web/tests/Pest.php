@@ -6,6 +6,10 @@ use Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class)->in('Feature');
 uses(TestCase::class)->in('Unit');
 
+beforeEach(function () {
+    $this->withoutVite();
+})->in('Feature');
+
 expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
