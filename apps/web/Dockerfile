@@ -1,9 +1,9 @@
 FROM composer:2 AS composer
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts
+RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --ignore-platform-req=php --ignore-platform-req=ext-pcntl
 COPY . .
-RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-req=php --ignore-platform-req=ext-pcntl
 
 FROM node:20 AS node
 WORKDIR /app

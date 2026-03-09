@@ -47,6 +47,7 @@ jobs:
 
       - name: Run migrations
         env:
+          CACHE_DRIVER: file
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
         run: php artisan migrate --force
