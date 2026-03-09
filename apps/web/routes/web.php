@@ -99,6 +99,8 @@ Route::get('/regulamin', function () {
     return Inertia::render('Public/Terms');
 })->name('terms');
 
+Route::view('/offline', 'offline')->name('offline');
+
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/dashboard', function () {
         $user = auth()->user();
