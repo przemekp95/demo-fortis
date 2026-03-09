@@ -13,7 +13,7 @@ COPY resources ./resources
 COPY vite.config.js tailwind.config.js postcss.config.js ./
 RUN npm run build
 
-FROM php:8.3-apache AS runtime
+FROM php:8.5-apache AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
