@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class EntrySubmissionService
@@ -46,13 +47,41 @@ class EntrySubmissionService
             throw new RuntimeException('Kwota zakupu jest poniżej minimalnej wartości.');
         }
 
-        $entry = DB::transaction(function () use ($campaign, $rule, $user, $payload, $request): Entry {
+        $normalizedPurchaseAmount = round((float) $payload['purchase_amount'], 2);
+        $normalizedPurchaseDate = $purchaseDate->toDateString();
+
+        if ($rule->deduplicate_receipts) {
+            $duplicateExists = Receipt::query()
+                ->where('campaign_id', $campaign->id)
+                ->where('receipt_number', Arr::get($payload, 'receipt_number'))
+                ->whereDate('purchase_date', $normalizedPurchaseDate)
+                ->get(['purchase_amount'])
+                ->contains(
+                    fn (Receipt $receipt): bool => round((float) $receipt->purchase_amount, 2) === $normalizedPurchaseAmount,
+                );
+
+            if ($duplicateExists) {
+                throw ValidationException::withMessages([
+                    'receipt_number' => 'Paragon został już zgłoszony w tej kampanii.',
+                ]);
+            }
+        }
+
+        $entry = DB::transaction(function () use (
+            $campaign,
+            $rule,
+            $user,
+            $payload,
+            $request,
+            $normalizedPurchaseAmount,
+            $normalizedPurchaseDate,
+        ): Entry {
             $receipt = Receipt::create([
                 'campaign_id' => $campaign->id,
                 'user_id' => $user->id,
                 'receipt_number' => Arr::get($payload, 'receipt_number'),
-                'purchase_amount' => Arr::get($payload, 'purchase_amount'),
-                'purchase_date' => Arr::get($payload, 'purchase_date'),
+                'purchase_amount' => $normalizedPurchaseAmount,
+                'purchase_date' => $normalizedPurchaseDate,
                 'device_fingerprint' => Arr::get($payload, 'device_fingerprint'),
                 'submitted_ip' => $request->ip(),
                 'status' => 'submitted',

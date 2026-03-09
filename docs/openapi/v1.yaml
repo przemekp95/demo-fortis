@@ -18,46 +18,44 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Campaign'
+                $ref: '#/components/schemas/CampaignResponse'
+        '404':
+          description: No active campaign
   /campaign/current/prizes:
     get:
       summary: Get prizes for current campaign
       operationId: getCurrentCampaignPrizes
       responses:
         '200':
-          description: Prize list
+          description: Prize list for the active campaign
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Prize'
+                $ref: '#/components/schemas/PrizeListResponse'
+        '404':
+          description: No active campaign
   /draws/history:
     get:
       summary: Get historical draw runs
       operationId: getDrawHistory
       responses:
         '200':
-          description: Draw history
+          description: Paginated draw history
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DrawRun'
+                $ref: '#/components/schemas/DrawRunPaginatedResponse'
   /winners:
     get:
       summary: Get published winners with masked participant data
       operationId: getWinners
       responses:
         '200':
-          description: Winner list
+          description: Paginated winner list
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Winner'
+                $ref: '#/components/schemas/WinnerPaginatedResponse'
   /stats/public:
     get:
       summary: Get public platform statistics
@@ -68,7 +66,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicStats'
+                $ref: '#/components/schemas/PublicStatsResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -76,6 +74,50 @@ components:
       scheme: bearer
       bearerFormat: Token
   schemas:
+    CampaignResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Campaign'
+    PrizeListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prize'
+    DrawRunPaginatedResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DrawRun'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    WinnerPaginatedResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Winner'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PublicStatsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PublicStats'
     Campaign:
       type: object
       required: [id, name, status, starts_at, ends_at, final_draw_at]
@@ -88,6 +130,9 @@ components:
           type: string
         status:
           type: string
+        description:
+          type: string
+          nullable: true
         starts_at:
           type: string
           format: date-time
@@ -115,9 +160,11 @@ components:
           format: float
     DrawRun:
       type: object
-      required: [id, type, status, executed_at]
+      required: [id, campaign_id, type, status, started_at, finished_at, winner_count]
       properties:
         id:
+          type: integer
+        campaign_id:
           type: integer
         type:
           type: string
@@ -125,31 +172,105 @@ components:
         status:
           type: string
           enum: [pending, running, completed, failed]
-        executed_at:
+        started_at:
           type: string
           format: date-time
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        winner_count:
+          type: integer
     Winner:
       type: object
-      required: [id, draw_run_id, entry_id, published_at]
+      required: [id, campaign_id, draw_run_id, entry_id, published_at, winner]
       properties:
         id:
+          type: integer
+        campaign_id:
           type: integer
         draw_run_id:
           type: integer
         entry_id:
           type: integer
-        masked_name:
+        campaign_name:
           type: string
+          nullable: true
+        prize_name:
+          type: string
+          nullable: true
+        winner:
+          type: object
+          required: [email, city]
+          properties:
+            email:
+              type: string
+              nullable: true
+            city:
+              type: string
+              nullable: true
         published_at:
           type: string
           format: date-time
     PublicStats:
       type: object
-      required: [entries_total, winners_total, active_campaign]
+      required: [entries_total, winners_total, active_campaigns]
       properties:
         entries_total:
           type: integer
         winners_total:
           type: integer
-        active_campaign:
+        active_campaigns:
+          type: integer
+    PaginationLinks:
+      type: object
+      required: [first, last, prev, next]
+      properties:
+        first:
+          type: string
+          nullable: true
+        last:
+          type: string
+          nullable: true
+        prev:
+          type: string
+          nullable: true
+        next:
+          type: string
+          nullable: true
+    PaginationMeta:
+      type: object
+      required: [current_page, from, last_page, links, path, per_page, to, total]
+      properties:
+        current_page:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaginationMetaLink'
+        path:
+          type: string
+        per_page:
+          type: integer
+        to:
+          type: integer
+          nullable: true
+        total:
+          type: integer
+    PaginationMetaLink:
+      type: object
+      required: [url, label, active]
+      properties:
+        url:
+          type: string
+          nullable: true
+        label:
+          type: string
+        active:
           type: boolean

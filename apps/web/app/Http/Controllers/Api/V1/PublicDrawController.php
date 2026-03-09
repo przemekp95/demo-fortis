@@ -13,6 +13,7 @@ class PublicDrawController extends Controller
         return DrawRunResource::collection(
             DrawRun::query()
                 ->where('status', 'completed')
+                ->withCount('winners')
                 ->latest('started_at')
                 ->paginate(50),
         );

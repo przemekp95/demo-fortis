@@ -6,11 +6,11 @@ Contract snapshot: `docs/openapi/v1.yaml`
 Frontend types: `apps/web/resources/js/types/public-api.d.ts`
 
 ## Endpoints
-- `GET /campaign/current`
-- `GET /campaign/current/prizes`
-- `GET /draws/history`
-- `GET /winners`
-- `GET /stats/public`
+- `GET /campaign/current` returns `{ data: PublicCampaign }`
+- `GET /campaign/current/prizes` returns `{ data: PublicPrize[] }`
+- `GET /draws/history` returns paginated `{ data, links, meta }`
+- `GET /winners` returns paginated `{ data, links, meta }` and only published winners
+- `GET /stats/public` returns `{ data: PublicStats }`
 
 ## Webhook Events
 - `entry.accepted`

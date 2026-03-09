@@ -13,6 +13,7 @@ class PublicWinnerController extends Controller
         return WinnerResource::collection(
             Winner::query()
                 ->with(['user.profile', 'prize', 'campaign'])
+                ->whereNotNull('published_at')
                 ->latest('published_at')
                 ->paginate(100),
         );

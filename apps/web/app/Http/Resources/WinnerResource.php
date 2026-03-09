@@ -12,8 +12,11 @@ class WinnerResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'campaign' => $this->campaign?->name,
-            'prize' => $this->prize?->name,
+            'campaign_id' => $this->campaign_id,
+            'draw_run_id' => $this->draw_run_id,
+            'entry_id' => $this->entry_id,
+            'campaign_name' => $this->campaign?->name,
+            'prize_name' => $this->prize?->name,
             'winner' => [
                 'email' => $email === null ? null : preg_replace('/(^.).+(@.+$)/', '$1***$2', $email),
                 'city' => $this->user?->profile?->city,
