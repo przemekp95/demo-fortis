@@ -116,18 +116,28 @@ jobs:
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
-          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "mkdir -p '$remote_path'"
-          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$REMOTE_USER@$REMOTE_HOST:$remote_path/"
+          remote_host="$REMOTE_HOST"
+          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
+            remote_host="[$remote_host]"
+          fi
+          remote_target="$REMOTE_USER@$remote_host"
+          ssh -p "$remote_port" "$remote_target" "mkdir -p '$remote_path'"
+          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$remote_target:$remote_path/"
 
       - name: Deploy to Mikrus staging
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
+          remote_host="$REMOTE_HOST"
+          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
+            remote_host="[$remote_host]"
+          fi
+          remote_target="$REMOTE_USER@$remote_host"
 
-          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" \
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$remote_target" \
             "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
 
-          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "set -euo pipefail
+          ssh -p "$remote_port" "$remote_target" "set -euo pipefail
             cd '$remote_path'
             docker compose pull app queue scheduler
             docker compose up -d --remove-orphans
@@ -217,18 +227,28 @@ jobs:
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
-          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "mkdir -p '$remote_path'"
-          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$REMOTE_USER@$REMOTE_HOST:$remote_path/"
+          remote_host="$REMOTE_HOST"
+          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
+            remote_host="[$remote_host]"
+          fi
+          remote_target="$REMOTE_USER@$remote_host"
+          ssh -p "$remote_port" "$remote_target" "mkdir -p '$remote_path'"
+          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$remote_target:$remote_path/"
 
       - name: Deploy to Mikrus production
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
+          remote_host="$REMOTE_HOST"
+          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
+            remote_host="[$remote_host]"
+          fi
+          remote_target="$REMOTE_USER@$remote_host"
 
-          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" \
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$remote_target" \
             "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
 
-          ssh -p "$remote_port" "$REMOTE_USER@$REMOTE_HOST" "set -euo pipefail
+          ssh -p "$remote_port" "$remote_target" "set -euo pipefail
             cd '$remote_path'
             docker compose pull app queue scheduler
             docker compose up -d --remove-orphans
