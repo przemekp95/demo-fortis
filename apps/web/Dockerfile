@@ -5,7 +5,7 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --igno
 COPY . .
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-req=php --ignore-platform-req=ext-pcntl
 
-FROM node:20 AS node
+FROM node:25 AS node
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
