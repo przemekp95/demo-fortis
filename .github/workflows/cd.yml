@@ -116,28 +116,29 @@ jobs:
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
-          remote_host="$REMOTE_HOST"
-          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
-            remote_host="[$remote_host]"
+          remote_host="${REMOTE_HOST#[}"
+          remote_host="${remote_host%]}"
+          scp_host="$remote_host"
+          if [[ "$scp_host" == *:* ]]; then
+            scp_host="[$scp_host]"
           fi
-          remote_target="$REMOTE_USER@$remote_host"
-          ssh -p "$remote_port" "$remote_target" "mkdir -p '$remote_path'"
-          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$remote_target:$remote_path/"
+          ssh_target="$REMOTE_USER@$remote_host"
+          scp_target="$REMOTE_USER@$scp_host"
+          ssh -p "$remote_port" "$ssh_target" "mkdir -p '$remote_path'"
+          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$scp_target:$remote_path/"
 
       - name: Deploy to Mikrus staging
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
-          remote_host="$REMOTE_HOST"
-          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
-            remote_host="[$remote_host]"
-          fi
-          remote_target="$REMOTE_USER@$remote_host"
+          remote_host="${REMOTE_HOST#[}"
+          remote_host="${remote_host%]}"
+          ssh_target="$REMOTE_USER@$remote_host"
 
-          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$remote_target" \
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$ssh_target" \
             "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
 
-          ssh -p "$remote_port" "$remote_target" "set -euo pipefail
+          ssh -p "$remote_port" "$ssh_target" "set -euo pipefail
             cd '$remote_path'
             docker compose pull app queue scheduler
             docker compose up -d --remove-orphans
@@ -227,28 +228,29 @@ jobs:
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
-          remote_host="$REMOTE_HOST"
-          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
-            remote_host="[$remote_host]"
+          remote_host="${REMOTE_HOST#[}"
+          remote_host="${remote_host%]}"
+          scp_host="$remote_host"
+          if [[ "$scp_host" == *:* ]]; then
+            scp_host="[$scp_host]"
           fi
-          remote_target="$REMOTE_USER@$remote_host"
-          ssh -p "$remote_port" "$remote_target" "mkdir -p '$remote_path'"
-          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$remote_target:$remote_path/"
+          ssh_target="$REMOTE_USER@$remote_host"
+          scp_target="$REMOTE_USER@$scp_host"
+          ssh -p "$remote_port" "$ssh_target" "mkdir -p '$remote_path'"
+          scp -P "$remote_port" .deploy/docker-compose.yml .deploy/.env "$scp_target:$remote_path/"
 
       - name: Deploy to Mikrus production
         run: |
           remote_port="${REMOTE_PORT:-22}"
           remote_path="${DEPLOY_PATH:-/home/$REMOTE_USER/apps/demo-fortis}"
-          remote_host="$REMOTE_HOST"
-          if [[ "$remote_host" == *:* && "$remote_host" != \[*\] ]]; then
-            remote_host="[$remote_host]"
-          fi
-          remote_target="$REMOTE_USER@$remote_host"
+          remote_host="${REMOTE_HOST#[}"
+          remote_host="${remote_host%]}"
+          ssh_target="$REMOTE_USER@$remote_host"
 
-          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$remote_target" \
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$remote_port" "$ssh_target" \
             "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
 
-          ssh -p "$remote_port" "$remote_target" "set -euo pipefail
+          ssh -p "$remote_port" "$ssh_target" "set -euo pipefail
             cd '$remote_path'
             docker compose pull app queue scheduler
             docker compose up -d --remove-orphans
