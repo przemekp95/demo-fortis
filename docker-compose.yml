@@ -23,6 +23,7 @@ services:
       REDIS_HOST: redis
       CACHE_DRIVER: redis
       QUEUE_CONNECTION: redis
+      MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
     depends_on:

@@ -29,7 +29,9 @@ const formatDate = (value) => {
                 class="mx-auto flex max-w-5xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8"
             >
                 <div>
-                    <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">{{ legal.brand }}</p>
+                    <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">
+                        {{ legal.brand }}
+                    </p>
                     <h1 class="mt-1 text-xl font-semibold text-white">Polityka prywatności</h1>
                 </div>
 
@@ -49,8 +51,8 @@ const formatDate = (value) => {
                 </p>
                 <p class="mt-4 leading-relaxed text-slate-200">
                     Niniejsza Polityka prywatności opisuje zasady przetwarzania danych osobowych w
-                    ramach platformy loterii paragonowej {{ legal.brand }} oraz usług powiązanych,
-                    w tym panelu uczestnika, panelu administracyjnego i publicznego API.
+                    ramach platformy loterii paragonowej {{ legal.brand }} oraz usług powiązanych, w
+                    tym panelu uczestnika, panelu administracyjnego i publicznego API.
                 </p>
             </section>
 

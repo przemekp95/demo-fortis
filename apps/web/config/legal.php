@@ -2,6 +2,7 @@
 
 return [
     'brand' => env('LEGAL_BRAND', 'Fortis'),
+    'copy_approved' => env('LEGAL_COPY_APPROVED', false),
     'organization_name' => env('LEGAL_ORGANIZATION_NAME', 'Fortis Promotions Sp. z o.o.'),
     'support_email' => env('LEGAL_SUPPORT_EMAIL', 'kontakt@fortis.test'),
     'privacy_email' => env('LEGAL_PRIVACY_EMAIL', 'rodo@fortis.test'),

@@ -59,4 +59,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Winner::class);
     }
+
+    /** @return HasMany<DsrRequest> */
+    public function dsrRequests(): HasMany
+    {
+        return $this->hasMany(DsrRequest::class);
+    }
 }

@@ -15,7 +15,7 @@ Senior-level monorepo for a fictional e-commerce lottery platform built with Lar
 - `infra/k8s` local bootstrap manifests for Minikube namespaces
 - `infra/mikrus` production Docker Compose runtime for Mikrus deploys
 - `ops/github` GitHub governance files (CODEOWNERS, templates)
-- `tests/e2e` Playwright smoke tests
+- `tests/e2e` Playwright core business and smoke tests
 - `tests/perf` k6 performance scenarios
 - `docs` architecture and operational docs
 
@@ -49,6 +49,7 @@ Seeded demo accounts:
 
 Optional public/legal copy overrides in `apps/web/.env`:
 
+- `LEGAL_COPY_APPROVED` set this to `true` outside local/testing after legal review
 - `LEGAL_ORGANIZATION_NAME`
 - `LEGAL_SUPPORT_EMAIL`
 - `LEGAL_PRIVACY_EMAIL`
@@ -72,10 +73,12 @@ docker compose exec app php artisan migrate --seed
 ```bash
 make qa
 make test
+make test-prod-like
 ```
 
 Backend coverage enforcement in CI applies to the critical API and service paths listed in `apps/web/phpunit.xml`.
 API contract drift is checked in CI by regenerating `apps/web/resources/js/types/public-api.d.ts` from `docs/openapi/v1.yaml`.
+Production-parity checks run in CI against `MySQL 8 + Redis 7`, and security evidence now includes Trivy + Semgrep SARIF uploads, a Laravel-focused security gate, and CycloneDX SBOM artifacts.
 
 If you prefer to run the checks directly:
 
@@ -95,6 +98,12 @@ npm run test:coverage
 php artisan test
 ```
 
+To run the production-like suite locally with the Docker stack up:
+
+```bash
+make test-prod-like
+```
+
 ## E2E
 
 ```bash
@@ -102,6 +111,7 @@ make e2e
 ```
 
 Note: auth endpoints use a honeypot with a minimum 1 second dwell time.
+The E2E suite satisfies that requirement by setting the hidden form timestamp instead of sleeping.
 
 ## Performance (k6)
 
@@ -149,6 +159,7 @@ MAIL_PASSWORD=...
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME="Fortis Lottery"
+LEGAL_COPY_APPROVED=true
 ```
 
 Host prerequisites:
@@ -174,3 +185,5 @@ helm upgrade --install lottery-production infra/helm/lottery -n lottery-producti
 - Work on short-lived branches: `feature/*`, `fix/*`, `hotfix/*`
 - Open PR for every change
 - Merge with squash after required checks pass
+
+See [ops/github/branch-protection.md](/home/przemekp95/Pobrane/demo%20fortis/ops/github/branch-protection.md) and [ops/github/repository-governance.md](/home/przemekp95/Pobrane/demo%20fortis/ops/github/repository-governance.md) for the current observed GitHub state and the target repository policy.

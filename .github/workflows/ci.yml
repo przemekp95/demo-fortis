@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   backend:
@@ -146,9 +147,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
       - name: Build image for scan
         run: docker build -t fortis-lottery:ci ./apps/web
-      - name: Trivy image scan (HIGH/CRITICAL)
+
+      - name: Generate Trivy SARIF report
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            aquasec/trivy:0.56.1 image \
+            --scanners vuln \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --format sarif \
+            --output trivy.sarif \
+            fortis-lottery:ci
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-container
+
+      - name: Enforce Trivy image scan (HIGH/CRITICAL)
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -167,31 +191,194 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-
-      - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist
-
       - name: Install Semgrep
-        run: python3 -m pip install --user semgrep
+        run: |
+          python3 -m pip install --user semgrep
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Run Semgrep PHP security scan
-        env:
-          PATH: /home/runner/.local/bin:${{ env.PATH }}
         run: |
+          set +e
           semgrep \
             --config p/php \
             --config p/secrets \
             --error \
+            --sarif \
+            --output semgrep.sarif \
             app \
             routes
+          status=$?
+          echo "SEMGREP_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Upload Semgrep SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: apps/web/semgrep.sarif
+          category: semgrep-php
+
+      - name: Enforce Semgrep result
+        run: exit "${SEMGREP_EXIT_CODE:-0}"
+
+  security-laravel:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_sqlite
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare environment for Laravel security analyzers
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          {
+            echo "APP_DEBUG=false"
+            echo "CACHE_DRIVER=file"
+            echo "QUEUE_CONNECTION=sync"
+            echo "SESSION_DRIVER=file"
+          } >> .env
+
+      - name: Run Laravel security analyzers
+        run: |
+          set +e
+          php artisan enlightn --ci \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\AppDebugHideAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\CSRFAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\EncryptedCookiesAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\EnvAccessAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\FillableForeignKeyAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\HttpOnlyCookieAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\LoginThrottlingAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\MassAssignmentAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\UnguardedModelsAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\VulnerableDependencyAnalyzer' \
+            'Enlightn\\Enlightn\\Analyzers\\Security\\FrontendVulnerableDependencyAnalyzer' \
+            | tee enlightn-security.txt
+          status=${PIPESTATUS[0]}
+          echo "ENLIGHTN_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Upload Laravel security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: enlightn-security-report
+          path: apps/web/enlightn-security.txt
+
+      - name: Enforce Laravel security result
+        run: exit "${ENLIGHTN_EXIT_CODE:-0}"
+
+  integration-prod-like:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: fortis_lottery_test
+          MYSQL_USER: fortis
+          MYSQL_PASSWORD: fortis
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_mysql, bcmath, pcntl, redis
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare production-like environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          {
+            echo "APP_ENV=testing"
+            echo "APP_DEBUG=false"
+            echo "DB_CONNECTION=mysql"
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=3306"
+            echo "DB_DATABASE=fortis_lottery_test"
+            echo "DB_USERNAME=fortis"
+            echo "DB_PASSWORD=fortis"
+            echo "CACHE_DRIVER=redis"
+            echo "QUEUE_CONNECTION=redis"
+            echo "SESSION_DRIVER=file"
+            echo "REDIS_HOST=127.0.0.1"
+            echo "REDIS_PORT=6379"
+            echo "HORIZON_PREFIX=fortis_horizon_test"
+          } >> .env
+
+      - name: Run production-like integration suite
+        env:
+          APP_ENV: testing
+          APP_DEBUG: false
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: fortis_lottery_test
+          DB_USERNAME: fortis
+          DB_PASSWORD: fortis
+          CACHE_DRIVER: redis
+          QUEUE_CONNECTION: redis
+          SESSION_DRIVER: file
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+        run: php artisan test tests/Integration/ProdLike --without-tty
+
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate CycloneDX SBOMs
+        run: |
+          docker run --rm -v "$PWD:/workspace" -w /workspace anchore/syft:v1.22.0 dir:apps/web -o cyclonedx-json=apps-web.sbom.cdx.json
+          docker run --rm -v "$PWD:/workspace" -w /workspace anchore/syft:v1.22.0 dir:tests/e2e -o cyclonedx-json=tests-e2e.sbom.cdx.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: |
+            apps-web.sbom.cdx.json
+            tests-e2e.sbom.cdx.json
 
   e2e-smoke:
     runs-on: ubuntu-latest
-    needs: [backend, frontend-tests, frontend-build, container-security, php-security]
+    needs: [backend, frontend-tests, frontend-build, container-security, php-security, security-laravel, integration-prod-like, sbom]
     defaults:
       run:
         working-directory: apps/web
@@ -226,6 +413,7 @@ jobs:
             echo "CACHE_DRIVER=file"
             echo "QUEUE_CONNECTION=sync"
             echo "SESSION_DRIVER=file"
+            echo "MAIL_MAILER=array"
           } >> .env
           php artisan migrate --seed --force
 

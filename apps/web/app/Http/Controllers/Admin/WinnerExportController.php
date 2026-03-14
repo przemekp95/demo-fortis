@@ -17,6 +17,10 @@ class WinnerExportController extends Controller
     public function index(): Response
     {
         return inertia('Admin/WinnerExports/Index', [
+            'campaigns' => Campaign::query()
+                ->active()
+                ->latest('starts_at')
+                ->get(['id', 'name', 'status']),
             'exports' => WinnerExport::query()->with(['campaign', 'generator'])->latest()->paginate(20),
         ]);
     }

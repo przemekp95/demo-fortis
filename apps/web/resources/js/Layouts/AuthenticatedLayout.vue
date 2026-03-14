@@ -19,6 +19,7 @@ const links = computed(() => {
             { label: 'Kampanie', route: 'admin.campaigns.index', active: ['admin.campaigns.*'] },
             { label: 'Losowania', route: 'admin.draws.index', active: ['admin.draws.*'] },
             { label: 'Fraud', route: 'admin.fraud.index', active: ['admin.fraud.*'] },
+            { label: 'RODO', route: 'admin.dsr-requests.index', active: ['admin.dsr-requests.*'] },
             {
                 label: 'Eksporty',
                 route: 'admin.winner-exports.index',

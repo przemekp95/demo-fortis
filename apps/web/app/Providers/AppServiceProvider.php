@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\LegalConfigValidator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        app(LegalConfigValidator::class)->validate(
+            environment: $this->app->environment(),
+            legal: config('legal'),
+        );
     }
 }

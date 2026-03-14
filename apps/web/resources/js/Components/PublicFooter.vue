@@ -15,8 +15,8 @@ const legal = computed(() => page.props.legal ?? {});
                 <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">{{ legal.brand }}</p>
                 <h3 class="mt-2 text-lg font-semibold text-white">Platforma loterii paragonowej</h3>
                 <p class="mt-3 text-sm leading-relaxed text-slate-300">
-                    Obsługa kampanii promocyjnych, zgłoszeń paragonów, publikacji wyników oraz
-                    żądań RODO w jednym, spójnym panelu operacyjnym.
+                    Obsługa kampanii promocyjnych, zgłoszeń paragonów, publikacji wyników oraz żądań
+                    RODO w jednym, spójnym panelu operacyjnym.
                 </p>
             </section>
 

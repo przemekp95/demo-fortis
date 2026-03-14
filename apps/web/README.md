@@ -27,6 +27,7 @@ Useful follow-up commands:
 ```bash
 make qa
 make test
+make test-prod-like
 make e2e
 ```
 
@@ -51,6 +52,7 @@ App URLs:
 
 Optional public/legal copy overrides in `.env`:
 
+- `LEGAL_COPY_APPROVED` set this to `true` outside local/testing after legal review
 - `LEGAL_ORGANIZATION_NAME`
 - `LEGAL_SUPPORT_EMAIL`
 - `LEGAL_PRIVACY_EMAIL`
@@ -101,6 +103,12 @@ make qa
 make test
 ```
 
+Production-like coverage against `MySQL 8 + Redis 7` lives in `tests/Integration/ProdLike` and runs in CI via the `integration-prod-like` job. Locally, the quickest path is:
+
+```bash
+make test-prod-like
+```
+
 If you want to run checks directly inside `apps/web`:
 
 ```bash
@@ -126,3 +134,4 @@ make e2e
 ```
 
 The auth form uses a honeypot and a minimum 1 second dwell time, so browser automation must not submit login immediately after page load.
+The committed Playwright helpers satisfy this by backdating the hidden `_form_started_at` field instead of sleeping.

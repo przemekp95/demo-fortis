@@ -1,3 +1,14 @@
+FROM php:8.3-apache-bookworm AS php-ext-builder
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        $PHPIZE_DEPS \
+        libicu-dev; \
+    docker-php-ext-install pdo_mysql bcmath pcntl intl; \
+    pecl install redis; \
+    docker-php-ext-enable redis; \
+    rm -rf /var/lib/apt/lists/* /tmp/pear
+
 FROM composer:2 AS composer
 WORKDIR /app
 COPY composer.json composer.lock ./
@@ -13,21 +24,24 @@ COPY resources ./resources
 COPY vite.config.js tailwind.config.js postcss.config.js ./
 RUN npm run build
 
-FROM php:8.3-apache AS runtime
+FROM php:8.3-apache-bookworm AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    $PHPIZE_DEPS \
-    git \
-    unzip \
-    libzip-dev \
-    libicu-dev \
-    && docker-php-ext-install pdo_mysql bcmath pcntl intl \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apt-get purge -y --auto-remove $PHPIZE_DEPS \
+    libicu72 \
+    && apt-get purge -y \
+    autoconf \
+    dpkg-dev \
+    g++ \
+    gcc \
+    libc6-dev \
+    linux-libc-dev \
+    make \
+    && apt-get autoremove -y \
     && a2enmod rewrite headers \
-    && rm -rf /var/lib/apt/lists/* /tmp/pear
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
+COPY --from=php-ext-builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+COPY --from=php-ext-builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 COPY --from=composer /app /var/www/html
 COPY --from=node /app/public/build /var/www/html/public/build
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf

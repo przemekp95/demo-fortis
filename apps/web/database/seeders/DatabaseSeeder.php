@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Campaign;
+use App\Models\Entry;
+use App\Models\Receipt;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -60,5 +63,59 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $participant->assignRole('participant');
+
+        $campaign = Campaign::query()->where('slug', 'fortis-loteria-2026')->first();
+
+        if ($campaign !== null) {
+            $approvedReceipt = Receipt::updateOrCreate(
+                [
+                    'campaign_id' => $campaign->id,
+                    'receipt_number' => 'DEMO-APPROVED-001',
+                ],
+                [
+                    'user_id' => $participant->id,
+                    'purchase_amount' => 29.90,
+                    'purchase_date' => now()->toDateString(),
+                    'status' => 'accepted',
+                    'submitted_ip' => '127.0.0.1',
+                ],
+            );
+
+            Entry::updateOrCreate(
+                ['receipt_id' => $approvedReceipt->id],
+                [
+                    'campaign_id' => $campaign->id,
+                    'user_id' => $participant->id,
+                    'status' => 'approved',
+                    'risk_score' => 12,
+                    'approved_at' => now(),
+                ],
+            );
+
+            $flaggedReceipt = Receipt::updateOrCreate(
+                [
+                    'campaign_id' => $campaign->id,
+                    'receipt_number' => 'DEMO-FRAUD-001',
+                ],
+                [
+                    'user_id' => $participant->id,
+                    'purchase_amount' => 199.90,
+                    'purchase_date' => now()->toDateString(),
+                    'status' => 'flagged',
+                    'submitted_ip' => '127.0.0.1',
+                ],
+            );
+
+            Entry::updateOrCreate(
+                ['receipt_id' => $flaggedReceipt->id],
+                [
+                    'campaign_id' => $campaign->id,
+                    'user_id' => $participant->id,
+                    'status' => 'flagged',
+                    'risk_score' => 95,
+                    'flagged_at' => now(),
+                ],
+            );
+        }
     }
 }

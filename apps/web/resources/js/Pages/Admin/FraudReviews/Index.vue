@@ -1,10 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 
 defineProps({
     entries: Object,
 });
+
+const page = usePage();
 
 const decide = (entryId, decision) => {
     router.post(route('admin.fraud.review', entryId), { decision });
@@ -20,7 +22,14 @@ const decide = (entryId, decision) => {
         </template>
 
         <div class="py-8">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                <div
+                    v-if="page.props.flash.status"
+                    class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-md"
+                >
+                    {{ page.props.flash.status }}
+                </div>
+
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50">

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DrawController;
+use App\Http\Controllers\Admin\DsrRequestController;
 use App\Http\Controllers\Admin\FraudReviewController;
 use App\Http\Controllers\Admin\WinnerExportController;
 use App\Http\Controllers\Participant\DashboardController as ParticipantDashboardController;
@@ -133,6 +134,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
         Route::get('/fraud-reviews', [FraudReviewController::class, 'index'])->name('fraud.index');
         Route::post('/fraud-reviews/{entry}', [FraudReviewController::class, 'review'])->name('fraud.review');
+
+        Route::get('/dsr-requests', [DsrRequestController::class, 'index'])->name('dsr-requests.index');
 
         Route::get('/winner-exports', [WinnerExportController::class, 'index'])->name('winner-exports.index');
         Route::post('/campaigns/{campaign}/winner-exports', [WinnerExportController::class, 'store'])->name('winner-exports.store');

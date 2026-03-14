@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: setup up down qa test e2e
+.PHONY: setup up down qa test test-prod-like e2e
 
 setup:
 	test -f apps/web/.env || cp apps/web/.env.example apps/web/.env
@@ -30,6 +30,9 @@ test:
 	cd apps/web && \
 	php artisan test && \
 	npm run test:coverage
+
+test-prod-like:
+	docker compose exec app php artisan test tests/Integration/ProdLike
 
 e2e:
 	cd tests/e2e && \

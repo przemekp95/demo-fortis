@@ -16,7 +16,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('draw_runs', function (Blueprint $table): void {
+            $table->dropForeign(['draw_schedule_id']);
             $table->dropUnique(['draw_schedule_id']);
+            $table->index('draw_schedule_id');
+            $table->foreign('draw_schedule_id')
+                ->references('id')
+                ->on('draw_schedules')
+                ->nullOnDelete();
         });
     }
 };

@@ -16,6 +16,10 @@ class DashboardController extends Controller
 
         return Inertia::render('Participant/Dashboard', [
             'campaign' => $activeCampaign,
+            'dsrRequests' => $user?->dsrRequests()
+                ->latest('requested_at')
+                ->limit(5)
+                ->get(['id', 'type', 'status', 'requested_at', 'processed_at', 'result_path']) ?? [],
             'stats' => [
                 'entries_total' => $user?->entries()->count() ?? 0,
                 'entries_flagged' => $user?->entries()->where('status', 'flagged')->count() ?? 0,
