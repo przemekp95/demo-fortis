@@ -1,6 +1,23 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import PublicFooter from '@/Components/PublicFooter.vue';
+
+const page = usePage();
+const legal = computed(() => page.props.legal ?? {});
+
+const formatDate = (value) => {
+    if (!value) {
+        return 'Do uzupełnienia';
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    }).format(new Date(value));
+};
 </script>
 
 <template>
@@ -12,7 +29,7 @@ import PublicFooter from '@/Components/PublicFooter.vue';
                 class="mx-auto flex max-w-5xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8"
             >
                 <div>
-                    <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">Fortis</p>
+                    <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">{{ legal.brand }}</p>
                     <h1 class="mt-1 text-xl font-semibold text-white">Polityka prywatności</h1>
                 </div>
 
@@ -27,20 +44,25 @@ import PublicFooter from '@/Components/PublicFooter.vue';
 
         <main class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
-                <p class="text-sm text-slate-300">Data ostatniej aktualizacji: 27 lutego 2026</p>
+                <p class="text-sm text-slate-300">
+                    Data ostatniej aktualizacji: {{ formatDate(legal.privacy_last_updated) }}
+                </p>
                 <p class="mt-4 leading-relaxed text-slate-200">
-                    Niniejsza Polityka prywatności jest przykładowym dokumentem dołączonym do
-                    projektu demonstracyjnego serwisu internetowego i wersji PWA.
+                    Niniejsza Polityka prywatności opisuje zasady przetwarzania danych osobowych w
+                    ramach platformy loterii paragonowej {{ legal.brand }} oraz usług powiązanych,
+                    w tym panelu uczestnika, panelu administracyjnego i publicznego API.
                 </p>
             </section>
 
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
                 <h2 class="text-xl font-semibold text-white">1. Administrator danych</h2>
                 <p class="mt-3 leading-relaxed text-slate-200">
-                    Na potrzeby tego demo przyjęto przykładowe dane administratora. Kontakt w
-                    sprawach ochrony danych:
-                    <a href="mailto:rodo@fortis.test" class="text-cyan-200 hover:text-cyan-100"
-                        >rodo@fortis.test</a
+                    Administratorem danych osobowych jest {{ legal.organization_name }}. Kontakt w
+                    sprawach ochrony danych oraz realizacji praw osób, których dane dotyczą:
+                    <a
+                        :href="`mailto:${legal.privacy_email}`"
+                        class="text-cyan-200 hover:text-cyan-100"
+                        >{{ legal.privacy_email }}</a
                     >.
                 </p>
             </section>
@@ -119,8 +141,10 @@ import PublicFooter from '@/Components/PublicFooter.vue';
                 <p class="mt-3 leading-relaxed text-slate-200">
                     Żądania dotyczące danych osobowych można składać poprzez panel uczestnika
                     (sekcja DSR) lub wiadomość e-mail na adres:
-                    <a href="mailto:rodo@fortis.test" class="text-cyan-200 hover:text-cyan-100"
-                        >rodo@fortis.test</a
+                    <a
+                        :href="`mailto:${legal.privacy_email}`"
+                        class="text-cyan-200 hover:text-cyan-100"
+                        >{{ legal.privacy_email }}</a
                     >.
                 </p>
             </section>

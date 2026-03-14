@@ -1,6 +1,23 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import PublicFooter from '@/Components/PublicFooter.vue';
+
+const page = usePage();
+const legal = computed(() => page.props.legal ?? {});
+
+const formatDate = (value) => {
+    if (!value) {
+        return 'Do uzupełnienia';
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    }).format(new Date(value));
+};
 </script>
 
 <template>
@@ -12,7 +29,7 @@ import PublicFooter from '@/Components/PublicFooter.vue';
                 class="mx-auto flex max-w-5xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8"
             >
                 <div>
-                    <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">Fortis</p>
+                    <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">{{ legal.brand }}</p>
                     <h1 class="mt-1 text-xl font-semibold text-white">
                         Regulamin loterii paragonowej
                     </h1>
@@ -30,20 +47,22 @@ import PublicFooter from '@/Components/PublicFooter.vue';
         <main class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
                 <p class="text-sm text-slate-300">
-                    Wersja regulaminu: 1.0 | Data obowiązywania: 27 lutego 2026
+                    Wersja regulaminu: {{ legal.terms_version }} | Data obowiązywania:
+                    {{ formatDate(legal.terms_effective_at) }}
                 </p>
                 <p class="mt-4 leading-relaxed text-slate-200">
-                    Niniejszy regulamin jest przykładowym dokumentem dołączonym do projektu
-                    demonstracyjnego serwisu internetowego i aplikacji PWA.
+                    Niniejszy regulamin określa zasady udziału w loterii paragonowej prowadzonej z
+                    wykorzystaniem platformy {{ legal.brand }}, w tym warunki zgłoszeń, losowań,
+                    publikacji wyników oraz obsługi reklamacji.
                 </p>
             </section>
 
             <section class="rounded-3xl border border-white/15 bg-slate-900/70 p-6 sm:p-8">
                 <h2 class="text-xl font-semibold text-white">1. Organizator i definicje</h2>
                 <p class="mt-3 leading-relaxed text-slate-200">
-                    Na potrzeby tego demo przyjęto przykładowe dane organizatora. Uczestnik to osoba
-                    fizyczna, która założyła konto, potwierdziła adres e-mail i zaakceptowała
-                    wymagane zgody.
+                    Organizatorem loterii jest {{ legal.organization_name }}. Uczestnik to osoba
+                    fizyczna, która założyła konto, potwierdziła adres e-mail, zaakceptowała
+                    wymagane zgody i dokonała poprawnego zgłoszenia paragonu.
                 </p>
             </section>
 
@@ -100,9 +119,9 @@ import PublicFooter from '@/Components/PublicFooter.vue';
                 <p class="mt-3 leading-relaxed text-slate-200">
                     Reklamacje dotyczące przebiegu loterii można składać elektronicznie na adres
                     <a
-                        href="mailto:reklamacje@fortis.test"
+                        :href="`mailto:${legal.complaints_email}`"
                         class="text-cyan-200 hover:text-cyan-100"
-                        >reklamacje@fortis.test</a
+                        >{{ legal.complaints_email }}</a
                     >
                     w terminie 14 dni od zdarzenia będącego podstawą reklamacji.
                 </p>

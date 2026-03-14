@@ -1,16 +1,22 @@
 <script setup>
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
 const currentYear = new Date().getFullYear();
+const page = usePage();
+
+const legal = computed(() => page.props.legal ?? {});
 </script>
 
 <template>
     <footer class="rounded-3xl border border-white/15 bg-slate-900/75 px-6 py-8 sm:px-8">
         <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
             <section>
-                <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">Projekt Demo</p>
-                <h3 class="mt-2 text-lg font-semibold text-white">Loteria Paragonowa</h3>
+                <p class="text-xs uppercase tracking-[0.22em] text-cyan-300">{{ legal.brand }}</p>
+                <h3 class="mt-2 text-lg font-semibold text-white">Platforma loterii paragonowej</h3>
                 <p class="mt-3 text-sm leading-relaxed text-slate-300">
-                    Projekt demonstracyjny przygotowany jako zadanie pokazowe. Materiały i treści w
-                    tej sekcji mają charakter wyłącznie prezentacyjny.
+                    Obsługa kampanii promocyjnych, zgłoszeń paragonów, publikacji wyników oraz
+                    żądań RODO w jednym, spójnym panelu operacyjnym.
                 </p>
             </section>
 
@@ -71,20 +77,19 @@ const currentYear = new Date().getFullYear();
                     <li>
                         E-mail:
                         <a
-                            href="mailto:kontakt@fortis.test"
+                            :href="`mailto:${legal.support_email}`"
                             class="text-cyan-200 hover:text-cyan-100"
-                            >kontakt@fortis.test</a
+                            >{{ legal.support_email }}</a
                         >
                     </li>
-                    <li>Infolinia: +48 22 100 20 30</li>
-                    <li>Pn-Pt: 08:00-16:00</li>
+                    <li>Infolinia: {{ legal.support_phone }}</li>
+                    <li>{{ legal.support_hours }}</li>
                 </ul>
             </section>
         </div>
 
         <div class="mt-8 border-t border-white/10 pt-4 text-xs text-slate-400">
-            © {{ currentYear }} autor projektu demonstracyjnego. Materiał służy wyłącznie do
-            prezentacji rozwiązania.
+            © {{ currentYear }} {{ legal.organization_name }}. Wszelkie prawa zastrzeżone.
         </div>
     </footer>
 </template>

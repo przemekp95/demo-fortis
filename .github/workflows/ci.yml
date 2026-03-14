@@ -159,9 +159,39 @@ jobs:
             --exit-code 1 \
             fortis-lottery:ci
 
+  php-security:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Install Semgrep
+        run: python3 -m pip install --user semgrep
+
+      - name: Run Semgrep PHP security scan
+        env:
+          PATH: /home/runner/.local/bin:${{ env.PATH }}
+        run: |
+          semgrep \
+            --config p/php \
+            --config p/secrets \
+            --error \
+            app \
+            routes
+
   e2e-smoke:
     runs-on: ubuntu-latest
-    needs: [backend, frontend-tests, frontend-build, container-security]
+    needs: [backend, frontend-tests, frontend-build, container-security, php-security]
     defaults:
       run:
         working-directory: apps/web

@@ -47,6 +47,15 @@ Seeded demo accounts:
 - Admin: `admin@fortis.test` / `Password123!`
 - Participant: `participant@fortis.test` / `Password123!`
 
+Optional public/legal copy overrides in `apps/web/.env`:
+
+- `LEGAL_ORGANIZATION_NAME`
+- `LEGAL_SUPPORT_EMAIL`
+- `LEGAL_PRIVACY_EMAIL`
+- `LEGAL_COMPLAINTS_EMAIL`
+- `LEGAL_SUPPORT_PHONE`
+- `LEGAL_SUPPORT_HOURS`
+
 ## Manual Docker Bootstrap
 
 ```bash

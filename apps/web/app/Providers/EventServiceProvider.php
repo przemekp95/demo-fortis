@@ -33,6 +33,4 @@ class EventServiceProvider extends ServiceProvider
             QueueWebhookDeliveryForWinner::class,
         ],
     ];
-
-    public function boot(): void {}
 }

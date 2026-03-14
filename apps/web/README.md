@@ -49,6 +49,15 @@ App URLs:
 - Vite: `http://localhost:5173`
 - Mailpit: `http://localhost:8025`
 
+Optional public/legal copy overrides in `.env`:
+
+- `LEGAL_ORGANIZATION_NAME`
+- `LEGAL_SUPPORT_EMAIL`
+- `LEGAL_PRIVACY_EMAIL`
+- `LEGAL_COMPLAINTS_EMAIL`
+- `LEGAL_SUPPORT_PHONE`
+- `LEGAL_SUPPORT_HOURS`
+
 Seeded users:
 
 - admin: `admin@fortis.test` / `Password123!`

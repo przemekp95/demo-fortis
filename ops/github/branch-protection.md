@@ -10,10 +10,10 @@ Apply these settings on `main`:
   - `frontend-tests`
   - `frontend-build`
   - `container-security`
+  - `php-security`
   - `e2e-smoke`
   - `Analyze (actions)`
   - `Analyze (javascript-typescript)`
-  - `Analyze (php)`
 - Require linear history
 - Restrict force pushes and deletion
 - Enable auto-merge with squash strategy
