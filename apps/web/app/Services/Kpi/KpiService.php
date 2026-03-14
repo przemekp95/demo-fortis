@@ -31,6 +31,7 @@ class KpiService
         );
     }
 
+    /** @return array<string, int> */
     public function publicMetrics(): array
     {
         return [

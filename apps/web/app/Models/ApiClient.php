@@ -24,11 +24,13 @@ class ApiClient extends Model
         'last_used_at' => 'datetime',
     ];
 
+    /** @return HasMany<ApiToken> */
     public function tokens(): HasMany
     {
         return $this->hasMany(ApiToken::class);
     }
 
+    /** @return HasMany<WebhookEndpoint> */
     public function webhookEndpoints(): HasMany
     {
         return $this->hasMany(WebhookEndpoint::class);

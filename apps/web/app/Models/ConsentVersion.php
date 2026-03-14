@@ -24,6 +24,7 @@ class ConsentVersion extends Model
         'published_at' => 'datetime',
     ];
 
+    /** @return HasMany<Consent> */
     public function consents(): HasMany
     {
         return $this->hasMany(Consent::class);

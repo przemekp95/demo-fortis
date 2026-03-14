@@ -5,6 +5,13 @@ Auth: Bearer token from `api_tokens` (`api.client` middleware)
 Contract snapshot: `docs/openapi/v1.yaml`
 Frontend types: `apps/web/resources/js/types/public-api.d.ts`
 
+Regenerate types after contract changes:
+
+```bash
+cd apps/web
+npm run generate:api-types
+```
+
 ## Endpoints
 - `GET /campaign/current` returns `{ data: PublicCampaign }`
 - `GET /campaign/current/prizes` returns `{ data: PublicPrize[] }`

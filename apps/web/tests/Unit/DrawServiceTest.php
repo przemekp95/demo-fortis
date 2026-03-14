@@ -72,3 +72,65 @@ it('creates winners for due schedule', function () {
     $entry->refresh();
     expect($entry->status)->toBe('winner');
 });
+
+it('returns the same draw run when the schedule is processed twice', function () {
+    $campaign = Campaign::create([
+        'name' => 'Idempotent Draw',
+        'slug' => 'idempotent-draw',
+        'status' => 'active',
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+        'final_draw_at' => now()->addDays(2),
+    ]);
+
+    CampaignRule::create([
+        'campaign_id' => $campaign->id,
+        'max_entries_per_day' => 10,
+        'velocity_per_hour' => 10,
+        'max_receipt_age_days' => 14,
+        'min_purchase_amount' => 1,
+        'deduplicate_receipts' => true,
+        'risk_score_flag_threshold' => 60,
+        'risk_score_reject_threshold' => 90,
+    ]);
+
+    Prize::create([
+        'campaign_id' => $campaign->id,
+        'name' => 'Single Prize',
+        'draw_type' => 'daily',
+        'quantity' => 1,
+        'value' => 100,
+    ]);
+
+    $user = User::factory()->create();
+    $receipt = Receipt::create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $user->id,
+        'receipt_number' => 'A-2',
+        'purchase_amount' => 20,
+        'purchase_date' => now()->toDateString(),
+        'status' => 'accepted',
+    ]);
+
+    Entry::create([
+        'campaign_id' => $campaign->id,
+        'receipt_id' => $receipt->id,
+        'user_id' => $user->id,
+        'status' => 'approved',
+        'risk_score' => 10,
+    ]);
+
+    $schedule = DrawSchedule::create([
+        'campaign_id' => $campaign->id,
+        'type' => 'daily',
+        'run_at' => now()->subMinute(),
+        'status' => 'pending',
+    ]);
+
+    $firstRun = app(DrawService::class)->runSchedule($schedule);
+    $secondRun = app(DrawService::class)->runSchedule($schedule->fresh());
+
+    expect($secondRun->id)->toBe($firstRun->id);
+    $this->assertDatabaseCount('draw_runs', 1);
+    $this->assertDatabaseCount('winners', 1);
+});

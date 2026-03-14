@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Campaign;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -19,9 +20,11 @@ class UpdateCampaignRequest extends FormRequest
         return $user->hasRole('admin') || $user->can('campaigns.manage');
     }
 
+    /** @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|\Illuminate\Contracts\Validation\ValidationRule|string>> */
     public function rules(): array
     {
-        $campaignId = $this->route('campaign')?->id;
+        $campaign = $this->route('campaign');
+        $campaignId = $campaign instanceof Campaign ? $campaign->id : $campaign;
 
         return [
             'name' => ['required', 'string', 'max:255'],

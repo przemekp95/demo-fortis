@@ -11,6 +11,7 @@ class SubmitReceiptRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    /** @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|\Illuminate\Contracts\Validation\ValidationRule|string>> */
     public function rules(): array
     {
         return [

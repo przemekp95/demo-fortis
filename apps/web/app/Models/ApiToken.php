@@ -24,6 +24,7 @@ class ApiToken extends Model
         'revoked_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<ApiClient, self> */
     public function apiClient(): BelongsTo
     {
         return $this->belongsTo(ApiClient::class);

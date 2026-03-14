@@ -23,11 +23,13 @@ class WinnerExport extends Model
         'generated_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
+    /** @return BelongsTo<User, self> */
     public function generator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'generated_by');

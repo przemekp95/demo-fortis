@@ -27,16 +27,19 @@ class Receipt extends Model
         'purchase_date' => 'date',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
+    /** @return BelongsTo<User, self> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasOne<Entry> */
     public function entry(): HasOne
     {
         return $this->hasOne(Entry::class);

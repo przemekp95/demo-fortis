@@ -30,6 +30,7 @@ class WebhookDelivery extends Model
         'next_attempt_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<WebhookEndpoint, self> */
     public function webhookEndpoint(): BelongsTo
     {
         return $this->belongsTo(WebhookEndpoint::class);

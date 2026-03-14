@@ -22,11 +22,13 @@ class Consent extends Model
         'accepted_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<User, self> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<ConsentVersion, self> */
     public function consentVersion(): BelongsTo
     {
         return $this->belongsTo(ConsentVersion::class);

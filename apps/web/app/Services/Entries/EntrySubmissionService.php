@@ -5,6 +5,7 @@ namespace App\Services\Entries;
 use App\Events\EntryAccepted;
 use App\Events\EntryFlagged;
 use App\Models\Campaign;
+use App\Models\CampaignRule;
 use App\Models\Entry;
 use App\Models\FraudSignal;
 use App\Models\Receipt;
@@ -21,61 +22,66 @@ class EntrySubmissionService
 {
     public function __construct(private readonly FraudScoringService $fraudScoringService) {}
 
+    /** @param array<string, mixed> $payload */
     public function submit(User $user, array $payload, Request $request): Entry
     {
-        $campaign = Campaign::query()
-            ->active()
-            ->where('starts_at', '<=', now())
-            ->where('ends_at', '>=', now())
-            ->first();
-
-        if ($campaign === null) {
-            throw new RuntimeException('Brak aktywnej kampanii.');
-        }
-
-        $rule = $campaign->rule;
-        if ($rule === null) {
-            throw new RuntimeException('Brak skonfigurowanych zasad kampanii.');
-        }
-
         $purchaseDate = Carbon::parse($payload['purchase_date']);
-        if ($purchaseDate->lt(now()->subDays($rule->max_receipt_age_days)->startOfDay())) {
-            throw new RuntimeException('Paragon jest zbyt stary.');
-        }
-
-        if ((float) $payload['purchase_amount'] < (float) $rule->min_purchase_amount) {
-            throw new RuntimeException('Kwota zakupu jest poniżej minimalnej wartości.');
-        }
-
         $normalizedPurchaseAmount = round((float) $payload['purchase_amount'], 2);
         $normalizedPurchaseDate = $purchaseDate->toDateString();
 
-        if ($rule->deduplicate_receipts) {
-            $duplicateExists = Receipt::query()
-                ->where('campaign_id', $campaign->id)
-                ->where('receipt_number', Arr::get($payload, 'receipt_number'))
-                ->whereDate('purchase_date', $normalizedPurchaseDate)
-                ->get(['purchase_amount'])
-                ->contains(
-                    fn (Receipt $receipt): bool => round((float) $receipt->purchase_amount, 2) === $normalizedPurchaseAmount,
-                );
-
-            if ($duplicateExists) {
-                throw ValidationException::withMessages([
-                    'receipt_number' => 'Paragon został już zgłoszony w tej kampanii.',
-                ]);
-            }
-        }
-
         $entry = DB::transaction(function () use (
-            $campaign,
-            $rule,
             $user,
             $payload,
             $request,
+            $purchaseDate,
             $normalizedPurchaseAmount,
             $normalizedPurchaseDate,
         ): Entry {
+            $campaign = Campaign::query()
+                ->active()
+                ->where('starts_at', '<=', now())
+                ->where('ends_at', '>=', now())
+                ->lockForUpdate()
+                ->first();
+
+            if ($campaign === null) {
+                throw new RuntimeException('Brak aktywnej kampanii.');
+            }
+
+            $rule = CampaignRule::query()
+                ->where('campaign_id', $campaign->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($rule === null) {
+                throw new RuntimeException('Brak skonfigurowanych zasad kampanii.');
+            }
+
+            if ($purchaseDate->lt(now()->subDays($rule->max_receipt_age_days)->startOfDay())) {
+                throw new RuntimeException('Paragon jest zbyt stary.');
+            }
+
+            if ((float) $payload['purchase_amount'] < (float) $rule->min_purchase_amount) {
+                throw new RuntimeException('Kwota zakupu jest poniżej minimalnej wartości.');
+            }
+
+            if ($rule->deduplicate_receipts) {
+                $duplicateExists = Receipt::query()
+                    ->where('campaign_id', $campaign->id)
+                    ->where('receipt_number', Arr::get($payload, 'receipt_number'))
+                    ->whereDate('purchase_date', $normalizedPurchaseDate)
+                    ->get(['purchase_amount'])
+                    ->contains(
+                        fn (Receipt $receipt): bool => round((float) $receipt->purchase_amount, 2) === $normalizedPurchaseAmount,
+                    );
+
+                if ($duplicateExists) {
+                    throw ValidationException::withMessages([
+                        'receipt_number' => 'Paragon został już zgłoszony w tej kampanii.',
+                    ]);
+                }
+            }
+
             $receipt = Receipt::create([
                 'campaign_id' => $campaign->id,
                 'user_id' => $user->id,

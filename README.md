@@ -1,6 +1,12 @@
 # Fortis Lottery Platform
 
-Senior-level monorepo for a fictional e-commerce lottery platform built with Laravel 9, Vue 3, MySQL, Tailwind, PWA, and enterprise delivery practices.
+Senior-level monorepo for a fictional e-commerce lottery platform built with Laravel 10, Vue 3, MySQL, Tailwind, PWA, and enterprise delivery practices.
+
+## Runtime Baseline
+
+- PHP `8.3`
+- Node.js `20 LTS`
+- Docker with `docker compose` for the quickest local bootstrap
 
 ## Monorepo Structure
 
@@ -13,7 +19,35 @@ Senior-level monorepo for a fictional e-commerce lottery platform built with Lar
 - `tests/perf` k6 performance scenarios
 - `docs` architecture and operational docs
 
-## Quick Start (Docker Compose)
+## Quick Start
+
+Preferred onboarding path from the repo root:
+
+```bash
+make setup
+```
+
+This will:
+
+- create `apps/web/.env` when missing
+- build and start the local Docker stack
+- install Composer dependencies in the app container
+- generate the Laravel app key
+- run database migrations and seed demo data
+- install Playwright test dependencies
+
+Key URLs after setup:
+
+- Web: `http://localhost:8080`
+- Vite dev server: `http://localhost:5173`
+- Mailpit: `http://localhost:8025`
+
+Seeded demo accounts:
+
+- Admin: `admin@fortis.test` / `Password123!`
+- Participant: `participant@fortis.test` / `Password123!`
+
+## Manual Docker Bootstrap
 
 ```bash
 cp apps/web/.env.example apps/web/.env
@@ -24,43 +58,38 @@ docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
 ```
 
-App URLs:
-
-- Web: `http://localhost:8080`
-- Vite dev server: `http://localhost:5173`
-- Mailpit: `http://localhost:8025`
-
-Default seeded admin:
-
-- Email: `admin@fortis.test`
-- Password: `Password123!`
-
 ## Local Quality Gates
+
+```bash
+make qa
+make test
+```
+
+Backend coverage enforcement in CI applies to the critical API and service paths listed in `apps/web/phpunit.xml`.
+API contract drift is checked in CI by regenerating `apps/web/resources/js/types/public-api.d.ts` from `docs/openapi/v1.yaml`.
+
+If you prefer to run the checks directly:
 
 ```bash
 cd apps/web
 composer install
-npm install
+npm ci
 
 ./vendor/bin/pint --test
 ./vendor/bin/phpstan analyse --memory-limit=1G
 composer audit --format=json --no-interaction > composer-audit.json || true
 npm audit --omit=dev --audit-level=high
+npm run check:api-types
 npm run lint
 npm run format:check
-npm run test:coverage # frontend utility coverage
+npm run test:coverage
 php artisan test
 ```
-
-Backend coverage enforcement in CI applies to the critical API and service paths listed in `apps/web/phpunit.xml`.
 
 ## E2E
 
 ```bash
-cd tests/e2e
-npm ci
-npx playwright install chromium
-E2E_BASE_URL=http://127.0.0.1:8000 npm test
+make e2e
 ```
 
 Note: auth endpoints use a honeypot with a minimum 1 second dwell time.

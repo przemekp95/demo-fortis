@@ -30,31 +30,37 @@ class Entry extends Model
         'risk_score' => 'float',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
+    /** @return BelongsTo<Receipt, self> */
     public function receipt(): BelongsTo
     {
         return $this->belongsTo(Receipt::class);
     }
 
+    /** @return BelongsTo<User, self> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<FraudSignal> */
     public function fraudSignals(): HasMany
     {
         return $this->hasMany(FraudSignal::class);
     }
 
+    /** @return HasOne<FraudReview> */
     public function fraudReview(): HasOne
     {
         return $this->hasOne(FraudReview::class);
     }
 
+    /** @return HasOne<Winner> */
     public function winner(): HasOne
     {
         return $this->hasOne(Winner::class);

@@ -49,7 +49,7 @@ class DsrService
                 'email' => sprintf('anonymized+%d@example.invalid', $request->user->id),
             ]);
 
-            $request->user->profile()?->update([
+            $request->user->profile()->update([
                 'first_name' => 'Anonymized',
                 'last_name' => 'User',
                 'phone' => sprintf('000000%06d', $request->user->id),

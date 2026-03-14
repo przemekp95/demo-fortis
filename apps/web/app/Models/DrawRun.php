@@ -28,16 +28,19 @@ class DrawRun extends Model
         'metadata' => 'array',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
+    /** @return BelongsTo<DrawSchedule, self> */
     public function drawSchedule(): BelongsTo
     {
         return $this->belongsTo(DrawSchedule::class);
     }
 
+    /** @return HasMany<Winner> */
     public function winners(): HasMany
     {
         return $this->hasMany(Winner::class);

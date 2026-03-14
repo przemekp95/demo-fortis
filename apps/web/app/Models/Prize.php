@@ -24,11 +24,13 @@ class Prize extends Model
         'metadata' => 'array',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
+    /** @return HasMany<Winner> */
     public function winners(): HasMany
     {
         return $this->hasMany(Winner::class);

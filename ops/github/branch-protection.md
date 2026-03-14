@@ -7,8 +7,13 @@ Apply these settings on `main`:
 - Dismiss stale approvals when new commits are pushed
 - Require status checks to pass before merging:
   - `backend`
+  - `frontend-tests`
   - `frontend-build`
+  - `container-security`
   - `e2e-smoke`
+  - `Analyze (actions)`
+  - `Analyze (javascript-typescript)`
+  - `Analyze (php)`
 - Require linear history
 - Restrict force pushes and deletion
 - Enable auto-merge with squash strategy

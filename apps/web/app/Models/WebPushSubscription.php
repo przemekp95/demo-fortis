@@ -22,6 +22,7 @@ class WebPushSubscription extends Model
         'last_used_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<User, self> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

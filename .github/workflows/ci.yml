@@ -85,6 +85,7 @@ jobs:
         run: |
           ./vendor/bin/pint --test
           ./vendor/bin/phpstan analyse --memory-limit=1G
+          npm run check:api-types
           npm run lint
           npm run format:check
 

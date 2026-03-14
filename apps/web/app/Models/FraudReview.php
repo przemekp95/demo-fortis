@@ -22,11 +22,13 @@ class FraudReview extends Model
         'reviewed_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<Entry, self> */
     public function entry(): BelongsTo
     {
         return $this->belongsTo(Entry::class);
     }
 
+    /** @return BelongsTo<User, self> */
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');

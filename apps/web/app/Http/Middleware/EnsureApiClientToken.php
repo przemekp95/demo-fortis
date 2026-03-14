@@ -6,10 +6,11 @@ use App\Models\ApiToken;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
 class EnsureApiClientToken
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         $token = $request->bearerToken() ?? $request->header('X-API-Token');
         if ($token === null) {

@@ -4,8 +4,8 @@ Laravel 10 + Inertia + Vue 3 application for a lottery demo.
 
 ## Runtime Requirements
 
-- PHP `^8.1`
-- Node.js `>=20.19`
+- PHP `^8.3`
+- Node.js `20 LTS`
 
 ## What Lives Here
 
@@ -13,6 +13,22 @@ Laravel 10 + Inertia + Vue 3 application for a lottery demo.
 - participant dashboard, receipt submission, DSR and web-push opt-in
 - admin dashboard, campaign management, draw review and winner exports
 - public read-only API under `/api/v1`
+
+## Quick Start
+
+From the repo root the fastest path is:
+
+```bash
+make setup
+```
+
+Useful follow-up commands:
+
+```bash
+make qa
+make test
+make e2e
+```
 
 ## Run With Docker
 
@@ -72,8 +88,16 @@ npm run dev
 ## Quality Gates
 
 ```bash
+make qa
+make test
+```
+
+If you want to run checks directly inside `apps/web`:
+
+```bash
 ./vendor/bin/pint --test
 ./vendor/bin/phpstan analyse --memory-limit=1G
+npm run check:api-types
 npm run lint
 npm run format:check
 npm run test:coverage
@@ -84,14 +108,12 @@ Coverage scope is intentional:
 
 - frontend coverage gate covers utility modules in `resources/js/utils`
 - backend coverage gate covers critical public API and service paths configured in `phpunit.xml`
+- generated public API types in `resources/js/types/public-api.d.ts` are regenerated from `../../docs/openapi/v1.yaml`
 
 ## E2E
 
 ```bash
-cd ../../tests/e2e
-npm ci
-npx playwright install chromium
-E2E_BASE_URL=http://127.0.0.1:8000 npm test
+make e2e
 ```
 
 The auth form uses a honeypot and a minimum 1 second dwell time, so browser automation must not submit login immediately after page load.

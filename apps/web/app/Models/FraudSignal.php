@@ -22,6 +22,7 @@ class FraudSignal extends Model
         'score' => 'float',
     ];
 
+    /** @return BelongsTo<Entry, self> */
     public function entry(): BelongsTo
     {
         return $this->belongsTo(Entry::class);

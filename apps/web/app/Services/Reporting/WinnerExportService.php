@@ -6,19 +6,19 @@ use App\Models\Campaign;
 use App\Models\User;
 use App\Models\WinnerExport;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class WinnerExportService
 {
     public function export(Campaign $campaign, User $generatedBy): WinnerExport
     {
         $filename = sprintf('exports/winners-%d-%s.csv', $campaign->id, now()->format('YmdHis'));
-        $tempPath = storage_path('app/'.$filename);
+        $handle = fopen('php://temp', 'w+b');
 
-        if (! is_dir(dirname($tempPath))) {
-            mkdir(dirname($tempPath), 0775, true);
+        if ($handle === false) {
+            throw new RuntimeException('Unable to create winner export buffer.');
         }
 
-        $handle = fopen($tempPath, 'wb');
         fputcsv($handle, ['winner_id', 'user_email', 'first_name', 'last_name', 'phone', 'prize', 'status', 'published_at']);
 
         $rowCount = 0;
@@ -38,11 +38,11 @@ class WinnerExportService
             }
         });
 
+        rewind($handle);
+        $contents = stream_get_contents($handle);
         fclose($handle);
 
-        if (! Storage::disk('local')->exists($filename)) {
-            Storage::disk('local')->put($filename, file_get_contents($tempPath));
-        }
+        Storage::disk('local')->put($filename, $contents === false ? '' : $contents);
 
         return WinnerExport::create([
             'campaign_id' => $campaign->id,

@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Campaign;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin Campaign */
 class CampaignResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray($request): array
     {
         return [

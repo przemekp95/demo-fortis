@@ -27,11 +27,13 @@ class WebhookEndpoint extends Model
         'is_active' => 'boolean',
     ];
 
+    /** @return BelongsTo<ApiClient, self> */
     public function apiClient(): BelongsTo
     {
         return $this->belongsTo(ApiClient::class);
     }
 
+    /** @return HasMany<WebhookDelivery> */
     public function deliveries(): HasMany
     {
         return $this->hasMany(WebhookDelivery::class);

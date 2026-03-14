@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class HoneypotGuard
 {
@@ -16,7 +17,7 @@ class HoneypotGuard
 
     private const MAX_ELAPSED_MS = 7200000;
 
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         $trapValue = trim((string) $request->input(self::TRAP_FIELD, ''));
         $startedAt = $request->input(self::TIMESTAMP_FIELD);

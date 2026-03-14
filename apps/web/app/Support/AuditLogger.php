@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class AuditLogger
 {
+    /** @param array<string, mixed> $metadata */
     public static function log(
         string $action,
         ?Model $auditable = null,

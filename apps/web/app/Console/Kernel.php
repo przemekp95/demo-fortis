@@ -11,7 +11,12 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->job(new RunScheduledDrawsJob)->everyMinute();
+        $schedule
+            ->job(new RunScheduledDrawsJob)
+            ->name('run-scheduled-draws')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->onOneServer();
         $schedule->job(new RecomputeKpisJob)->everyFiveMinutes();
         $schedule->command('lottery:run-retention')->hourly();
         $schedule->command('lottery:publish-winners')->dailyAt('09:00');

@@ -27,6 +27,7 @@ class CampaignRule extends Model
         'extra_rules' => 'array',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);

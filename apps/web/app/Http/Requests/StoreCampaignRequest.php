@@ -18,6 +18,7 @@ class StoreCampaignRequest extends FormRequest
         return $user->hasRole('admin') || $user->can('campaigns.manage');
     }
 
+    /** @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|\Illuminate\Contracts\Validation\ValidationRule|string>> */
     public function rules(): array
     {
         return [

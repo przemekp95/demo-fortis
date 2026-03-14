@@ -25,6 +25,7 @@ jobs:
         language:
           - actions
           - javascript-typescript
+          - php
 
     steps:
       - uses: actions/checkout@v6

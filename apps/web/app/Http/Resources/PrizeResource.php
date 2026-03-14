@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Prize;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin Prize */
 class PrizeResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray($request): array
     {
         return [

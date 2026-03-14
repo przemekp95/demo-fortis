@@ -23,6 +23,13 @@ test('participant can submit receipt and see status', async ({ page }) => {
 
   await expect(page.getByText('Zgłoszenie zapisane.')).toBeVisible();
   await expect(page.getByRole('cell', { name: receiptNumber })).toBeVisible();
+
+  await page.getByLabel('Nr paragonu').fill(receiptNumber);
+  await page.getByLabel('Kwota').fill('99.90');
+  await page.getByLabel('Data zakupu').fill(today);
+  await page.getByRole('button', { name: 'Wyślij zgłoszenie' }).click();
+
+  await expect(page.getByText('Paragon został już zgłoszony w tej kampanii.')).toBeVisible();
 });
 
 test('admin can access fraud and winner exports views', async ({ page }) => {

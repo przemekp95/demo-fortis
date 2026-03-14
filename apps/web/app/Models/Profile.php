@@ -29,6 +29,7 @@ class Profile extends Model
         'birth_date' => 'date',
     ];
 
+    /** @return BelongsTo<User, self> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

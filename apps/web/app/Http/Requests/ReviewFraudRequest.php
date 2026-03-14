@@ -18,6 +18,7 @@ class ReviewFraudRequest extends FormRequest
         return $user->hasRole('admin') || $user->can('fraud.review');
     }
 
+    /** @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|\Illuminate\Contracts\Validation\ValidationRule|string>> */
     public function rules(): array
     {
         return [

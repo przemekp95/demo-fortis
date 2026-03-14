@@ -21,6 +21,7 @@ class KpiSnapshot extends Model
         'metrics' => 'array',
     ];
 
+    /** @return BelongsTo<Campaign, self> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);

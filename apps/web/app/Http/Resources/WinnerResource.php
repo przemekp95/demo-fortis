@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Winner;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin Winner */
 class WinnerResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray($request): array
     {
         $email = $this->user?->email;

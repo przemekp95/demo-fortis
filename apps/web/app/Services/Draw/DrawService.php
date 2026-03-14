@@ -10,6 +10,7 @@ use App\Models\Entry;
 use App\Models\Winner;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class DrawService
 {
@@ -21,10 +22,19 @@ class DrawService
             ->where('status', 'pending')
             ->where('run_at', '<=', now())
             ->orderBy('run_at')
-            ->get()
-            ->each(function (DrawSchedule $schedule) use (&$processed): void {
-                $this->runSchedule($schedule);
-                $processed++;
+            ->pluck('id')
+            ->each(function (int $scheduleId) use (&$processed): void {
+                $schedule = DrawSchedule::query()->find($scheduleId);
+
+                if ($schedule === null) {
+                    return;
+                }
+
+                $drawRun = $this->runSchedule($schedule);
+
+                if ($drawRun->wasRecentlyCreated) {
+                    $processed++;
+                }
             });
 
         return $processed;
@@ -32,31 +42,48 @@ class DrawService
 
     public function runSchedule(DrawSchedule $schedule): DrawRun
     {
-        if ($schedule->status === 'completed') {
-            return DrawRun::query()->where('draw_schedule_id', $schedule->id)->latest()->firstOrFail();
-        }
-
         return DB::transaction(function () use ($schedule): DrawRun {
-            $schedule->update(['status' => 'running']);
+            $lockedSchedule = DrawSchedule::query()
+                ->whereKey($schedule->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $existingRun = DrawRun::query()
+                ->where('draw_schedule_id', $lockedSchedule->id)
+                ->latest('id')
+                ->first();
+
+            if ($existingRun !== null) {
+                return $existingRun;
+            }
+
+            if (! in_array($lockedSchedule->status, ['pending', 'running'], true)) {
+                throw new RuntimeException(sprintf('Draw schedule %d cannot be processed from status %s.', $lockedSchedule->id, $lockedSchedule->status));
+            }
+
+            if ($lockedSchedule->status === 'pending') {
+                $lockedSchedule->update(['status' => 'running']);
+            }
 
             $drawRun = DrawRun::create([
-                'campaign_id' => $schedule->campaign_id,
-                'draw_schedule_id' => $schedule->id,
-                'type' => $schedule->type,
-                'idempotency_key' => sprintf('draw_schedule_%d_%s', $schedule->id, Str::uuid()),
+                'campaign_id' => $lockedSchedule->campaign_id,
+                'draw_schedule_id' => $lockedSchedule->id,
+                'type' => $lockedSchedule->type,
+                'idempotency_key' => sprintf('draw_schedule_%d_%s', $lockedSchedule->id, Str::uuid()),
                 'status' => 'running',
                 'started_at' => now(),
             ]);
 
             $eligibleEntries = Entry::query()
-                ->where('campaign_id', $schedule->campaign_id)
+                ->where('campaign_id', $lockedSchedule->campaign_id)
                 ->where('status', 'approved')
                 ->whereDoesntHave('winner')
+                ->lockForUpdate()
                 ->inRandomOrder()
                 ->get();
 
-            $prizes = $schedule->campaign->prizes()
-                ->where('draw_type', $schedule->type)
+            $prizes = $lockedSchedule->campaign->prizes()
+                ->where('draw_type', $lockedSchedule->type)
                 ->get();
 
             foreach ($prizes as $prize) {
@@ -67,7 +94,7 @@ class DrawService
                     }
 
                     $winner = Winner::create([
-                        'campaign_id' => $schedule->campaign_id,
+                        'campaign_id' => $lockedSchedule->campaign_id,
                         'draw_run_id' => $drawRun->id,
                         'prize_id' => $prize->id,
                         'entry_id' => $entry->id,
@@ -88,14 +115,14 @@ class DrawService
                 'metadata' => ['winner_count' => $drawRun->winners()->count()],
             ]);
 
-            $schedule->update([
+            $lockedSchedule->update([
                 'status' => 'completed',
                 'processed_at' => now(),
             ]);
 
             event(new DrawCompleted($drawRun));
 
-            return $drawRun;
+            return $drawRun->refresh();
         });
     }
 }

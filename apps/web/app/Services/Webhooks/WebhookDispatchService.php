@@ -12,6 +12,7 @@ class WebhookDispatchService
 {
     public function __construct(private readonly WebhookSigningService $webhookSigningService) {}
 
+    /** @param array<string, mixed> $payload */
     public function dispatch(string $eventType, string $eventId, int $campaignId, array $payload): void
     {
         $endpoints = WebhookEndpoint::query()->where('is_active', true)->get();
