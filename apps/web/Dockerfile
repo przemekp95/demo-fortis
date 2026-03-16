@@ -1,4 +1,4 @@
-FROM php:8.3-apache-bookworm AS php-ext-builder
+FROM php:8.5-apache-bookworm AS php-ext-builder
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -16,7 +16,7 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --igno
 COPY . .
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-req=php --ignore-platform-req=ext-pcntl
 
-FROM node:20-bookworm AS node
+FROM node:25-bookworm AS node
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -24,7 +24,7 @@ COPY resources ./resources
 COPY vite.config.js tailwind.config.js postcss.config.js ./
 RUN npm run build
 
-FROM php:8.3-apache-bookworm AS runtime
+FROM php:8.5-apache-bookworm AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu72 \
     && apt-get purge -y \
