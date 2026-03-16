@@ -271,7 +271,7 @@ jobs:
 
       - name: Upload Laravel security report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: enlightn-security-report
           path: apps/web/enlightn-security.txt
@@ -369,7 +369,7 @@ jobs:
           docker run --rm -v "$PWD:/workspace" -w /workspace anchore/syft:v1.22.0 dir:tests/e2e -o cyclonedx-json=tests-e2e.sbom.cdx.json
 
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: |
